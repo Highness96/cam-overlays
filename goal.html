@@ -5,18 +5,12 @@
 <title>Tip Goal Overlay</title>
 
 <style>
-:root{
-  --purple:#a855f7;
-  --purple2:#c084fc;
-  --bg:rgba(20,10,40,0.78);
-  --glow:rgba(168,85,247,.95);
-}
-
 body{
   margin:0;
   overflow:hidden;
   background:transparent;
   font-family:Arial, sans-serif;
+  color:#fff;
 }
 
 #container{
@@ -29,52 +23,51 @@ body{
 /* HEADER */
 #header{
   display:flex;
-  align-items:center;
   justify-content:space-between;
+  align-items:center;
   margin-bottom:10px;
 }
 
 #title{
   font-size:28px;
   font-weight:900;
-  color:var(--purple2);
-  text-shadow:0 0 8px var(--glow);
+  color:#ffffff;
+  text-shadow:0 0 6px rgba(0,0,0,0.85);
 }
 
 #counter{
   font-size:22px;
   font-weight:900;
-  color:var(--purple);
+  color:#ffffff;
   min-width:170px;
   text-align:right;
-  text-shadow:0 0 8px var(--glow);
+  text-shadow:0 0 6px rgba(0,0,0,0.85);
 }
 
 /* BAR */
 #progressWrap{
   position:relative;
   height:40px;
-  background:var(--bg);
+  background:rgba(0,0,0,0.6);
   border-radius:20px;
   overflow:hidden;
-  border:2px solid rgba(168,85,247,.5);
-  box-shadow:0 0 14px rgba(168,85,247,.5);
+  border:2px solid rgba(255,255,255,0.5);
 }
 
 #progressBar{
   height:100%;
   width:0%;
-  background:linear-gradient(90deg,#7c3aed,var(--purple),var(--purple2));
+  background:linear-gradient(90deg,#ffffff,#dddddd);
   transition:width .45s ease;
 }
 
-/* GLOW ANIMATION */
+/* GLOW ON TIP */
 .glow{
   animation:pulse 1s ease-out;
 }
 @keyframes pulse{
   0%{box-shadow:0 0 0 transparent}
-  50%{box-shadow:0 0 30px var(--glow)}
+  50%{box-shadow:0 0 20px rgba(255,255,255,0.9)}
   100%{box-shadow:0 0 0 transparent}
 }
 </style>
