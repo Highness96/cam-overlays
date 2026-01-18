@@ -5,117 +5,122 @@
 <title>Tip Goal Overlay</title>
 
 <style>
-  body {
-    margin: 0;
-    overflow: hidden;
-    font-family: Arial, sans-serif;
-    background: transparent;
-  }
+:root{
+  --purple:#a855f7;
+  --purple2:#c084fc;
+  --bg:rgba(20,10,40,0.78);
+  --glow:rgba(168,85,247,.95);
+}
 
-  /* MAIN CONTAINER */
-  #container {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    width: 650px;
-  }
+body{
+  margin:0;
+  overflow:hidden;
+  background:transparent;
+  font-family:Arial, sans-serif;
+}
 
-  /* HEADER ROW */
-  #header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-  }
+#container{
+  position:absolute;
+  top:20px;
+  left:20px;
+  width:650px;
+}
 
-  #title {
-    font-size: 28px;
-    font-weight: bold;
-    color: #c084fc;
-    text-shadow:
-      0 0 6px rgba(168,85,247,0.9),
-      0 0 12px rgba(168,85,247,0.6);
-  }
+/* HEADER */
+#header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:10px;
+}
 
-  #counter {
-    font-size: 22px;
-    font-weight: bold;
-    color: #a855f7;
-    text-shadow:
-      0 0 6px rgba(168,85,247,0.9),
-      0 0 12px rgba(168,85,247,0.6);
-  }
+#title{
+  font-size:28px;
+  font-weight:900;
+  color:var(--purple2);
+  text-shadow:0 0 8px var(--glow);
+}
 
-  /* BAR CONTAINER */
-  #progressContainer {
-    position: relative;
-    width: 100%;
-    height: 40px;
-    background: rgba(20, 10, 40, 0.75);
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 0 12px rgba(168,85,247,0.4);
-  }
+#counter{
+  font-size:22px;
+  font-weight:900;
+  color:var(--purple);
+  min-width:170px;
+  text-align:right;
+  text-shadow:0 0 8px var(--glow);
+}
 
-  /* BAR */
-  #progressBar {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(
-      90deg,
-      #7c3aed,
-      #a855f7,
-      #c084fc
-    );
-    transition: width 0.5s ease;
-  }
+/* BAR */
+#progressWrap{
+  position:relative;
+  height:40px;
+  background:var(--bg);
+  border-radius:20px;
+  overflow:hidden;
+  border:2px solid rgba(168,85,247,.5);
+  box-shadow:0 0 14px rgba(168,85,247,.5);
+}
 
-  /* GLOW ANIMATION ON TIP */
-  .glow {
-    animation: pulse 1.2s ease-out;
-  }
+#progressBar{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#7c3aed,var(--purple),var(--purple2));
+  transition:width .45s ease;
+}
 
-  @keyframes pulse {
-    0%   { box-shadow: 0 0 0 rgba(168,85,247,0); }
-    50%  { box-shadow: 0 0 25px rgba(168,85,247,1); }
-    100% { box-shadow: 0 0 0 rgba(168,85,247,0); }
-  }
+/* GLOW ANIMATION */
+.glow{
+  animation:pulse 1s ease-out;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 transparent}
+  50%{box-shadow:0 0 30px var(--glow)}
+  100%{box-shadow:0 0 0 transparent}
+}
 </style>
 </head>
 
 <body>
-  <div id="container">
-    <div id="header">
-      <div id="title">Tip Goal</div>
-      <div id="counter">0 / 50000</div>
-    </div>
-
-    <div id="progressContainer">
-      <div id="progressBar"></div>
-    </div>
+<div id="container">
+  <div id="header">
+    <div id="title">Tip Goal: 50000 tokens</div>
+    <div id="counter">0 / 50000</div>
   </div>
 
+  <div id="progressWrap">
+    <div id="progressBar"></div>
+  </div>
+</div>
+
 <script>
-  let current = 0;
-  const target = 50000;
+const TARGET = 50000;
+let current = 0;
 
-  window.addEventListener("message", (event) => {
-    const data = event.data;
-    if (data.type === "tip") {
-      current += data.amount;
-      if (current > target) current = target;
+const counter = document.getElementById("counter");
+const bar = document.getElementById("progressBar");
+const wrap = document.getElementById("progressWrap");
 
-      const percent = (current / target) * 100;
-      document.getElementById("progressBar").style.width = percent + "%";
-      document.getElementById("counter").textContent =
-        current + " / " + target;
+function update(){
+  const pct = Math.min((current / TARGET) * 100, 100);
+  bar.style.width = pct + "%";
+  counter.textContent = `${current} / ${TARGET}`;
+}
 
-      const bar = document.getElementById("progressContainer");
-      bar.classList.remove("glow");
-      void bar.offsetWidth; // reset animation
-      bar.classList.add("glow");
-    }
-  });
+window.addEventListener("message", e=>{
+  const d = e.data || {};
+  if(d.type !== "tip") return;
+
+  current += Number(d.amount || 0);
+  if(current > TARGET) current = TARGET;
+
+  update();
+
+  wrap.classList.remove("glow");
+  void wrap.offsetWidth;
+  wrap.classList.add("glow");
+});
+
+update();
 </script>
 </body>
 </html>
