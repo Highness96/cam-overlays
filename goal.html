@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Tip Goal</title>
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    color: #fff;
+  }
+  #goalContainer {
+    width: 600px;
+    height: 60px;
+    background: #333;
+    border-radius: 30px;
+    position: relative;
+  }
+  #progressBar {
+    width: 0%;
+    height: 100%;
+    background: #00d8ff;
+    border-radius: 30px;
+  }
+  #goalText {
+    position: absolute;
+    width: 100%;
+    text-align: center;
+    line-height: 60px;
+    font-size: 24px;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+  <div id="goalContainer">
+    <div id="progressBar"></div>
+    <div id="goalText">0 / 1000 tokens</div>
+  </div>
+
+<script>
+  let current = 0;
+  const target = 1000;
+
+  window.addEventListener("message", (event) => {
+    const data = event.data;
+    if (data.type === "tip") {
+      current += data.amount;
+      if (current > target) current = target;
+      document.getElementById("progressBar").style.width = (current / target * 100) + "%";
+      document.getElementById("goalText").textContent = current + " / " + target + " tokens";
+    }
+  });
+</script>
+</body>
+</html>
