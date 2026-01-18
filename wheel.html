@@ -100,7 +100,7 @@ html, body {
   right: 24px;
   bottom: 24px;
   padding: 18px 20px;
-  font-size: 24px;
+  font-size: 22px;
   border-radius: 18px;
   background: rgba(0,0,0,0.45);
   border: 2px solid rgba(255,255,255,0.25);
@@ -110,7 +110,7 @@ html, body {
 }
 
 #result b {
-  font-size: 26px;
+  font-size: 24px;
 }
 
 .flash {
@@ -146,14 +146,14 @@ html, body {
 <script>
 const SPIN_COST = 100;
 const ITEMS = [
-  "Pull pants down (brief tease)",
-  "Flash anything (5 seconds)",
+  "Pull pants down",
+  "Flash anything (5 sec)",
   "Show feet",
   "I choose",
   "Grab my package",
-  "Chat chooses next move",
-  "Spin Again",
-  "VIP attention moment"
+  "Chat chooses",
+  "Spin again",
+  "VIP attention"
 ];
 
 const canvas = document.getElementById("canvas");
@@ -161,10 +161,34 @@ const ctx = canvas.getContext("2d");
 const panel = document.getElementById("panel");
 const lastResult = document.getElementById("lastResult");
 const lastTip = document.getElementById("lastTip");
+
 document.getElementById("spinCost").textContent = SPIN_COST;
 
 let angle = 0;
 let spinning = false;
+
+/* 🔧 TEXT WRAPPING FUNCTION */
+function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = text.split(" ");
+  let line = "";
+  let lines = [];
+
+  for (let i = 0; i < words.length; i++) {
+    const testLine = line + words[i] + " ";
+    const metrics = ctx.measureText(testLine);
+    if (metrics.width > maxWidth && i > 0) {
+      lines.push(line);
+      line = words[i] + " ";
+    } else {
+      line = testLine;
+    }
+  }
+  lines.push(line);
+
+  lines.forEach((l, i) => {
+    ctx.fillText(l.trim(), x, y + i * lineHeight);
+  });
+}
 
 function drawWheel() {
   const cx = canvas.width / 2;
@@ -183,8 +207,7 @@ function drawWheel() {
     ctx.arc(cx, cy, r, start, end);
     ctx.fillStyle = i % 2 ? "rgba(110,231,255,0.35)" : "rgba(184,108,255,0.45)";
     ctx.fill();
-
-    ctx.strokeStyle = "rgba(255,255,255,0.4)";
+    ctx.strokeStyle = "rgba(255,255,255,0.35)";
     ctx.lineWidth = 3;
     ctx.stroke();
 
@@ -192,11 +215,22 @@ function drawWheel() {
     ctx.translate(cx, cy);
     ctx.rotate(start + slice / 2);
     ctx.textAlign = "right";
-    ctx.font = "900 28px Arial";
+    ctx.textBaseline = "middle";
+
+    ctx.font = "700 16px Arial";          // ✅ SMALLER FONT
     ctx.fillStyle = "#fff";
     ctx.shadowColor = "black";
-    ctx.shadowBlur = 12;
-    ctx.fillText(text, r - 20, 10);
+    ctx.shadowBlur = 10;
+
+    drawWrappedText(
+      ctx,
+      text,
+      r - 26,
+      0,
+      150,                               // ✅ MAX WIDTH
+      18                                // ✅ LINE HEIGHT
+    );
+
     ctx.restore();
   });
 
@@ -256,4 +290,3 @@ window.addEventListener("message", e=>{
 </script>
 </body>
 </html>
-
