@@ -126,6 +126,7 @@ html, body {
 </head>
 
 <body>
+
 <div id="wrap">
   <div id="panel"></div>
 
@@ -143,7 +144,13 @@ html, body {
   </div>
 </div>
 
+<!-- AUDIO -->
+<audio id="soundTip"  src="audio/tip.wav"  preload="auto"></audio>
+<audio id="soundSpin" src="audio/spin.wav" preload="auto"></audio>
+<audio id="soundWin"  src="audio/win.wav"  preload="auto"></audio>
+
 <script>
+/* ================= CONFIG ================= */
 const SPIN_COST = 100;
 const ITEMS = [
   "Pull pants down",
@@ -156,18 +163,37 @@ const ITEMS = [
   "VIP attention"
 ];
 
+/* ================= ELEMENTS ================= */
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const panel = document.getElementById("panel");
 const lastResult = document.getElementById("lastResult");
 const lastTip = document.getElementById("lastTip");
-
 document.getElementById("spinCost").textContent = SPIN_COST;
 
+/* ================= AUDIO ================= */
+const soundTip  = document.getElementById("soundTip");
+const soundSpin = document.getElementById("soundSpin");
+const soundWin  = document.getElementById("soundWin");
+
+soundTip.volume  = 0.7;
+soundSpin.volume = 0.7;
+soundWin.volume  = 0.8;
+
+function playSound(a){
+  if(!a) return;
+  try{
+    a.pause();
+    a.currentTime = 0;
+    const p = a.play();
+    if (p && p.catch) p.catch(()=>{});
+  }catch(e){}
+}
+
+/* ================= WHEEL ================= */
 let angle = 0;
 let spinning = false;
 
-/* TEXT WRAP */
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   const words = text.split(" ");
   let line = "";
@@ -175,8 +201,7 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
 
   for (let i = 0; i < words.length; i++) {
     const testLine = line + words[i] + " ";
-    const metrics = ctx.measureText(testLine);
-    if (metrics.width > maxWidth && i > 0) {
+    if (ctx.measureText(testLine).width > maxWidth && i > 0) {
       ctx.fillText(line.trim(), x, offsetY);
       line = words[i] + " ";
       offsetY += lineHeight;
@@ -202,9 +227,7 @@ function drawWheel() {
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, r, start, end);
-    ctx.fillStyle = i % 2
-      ? "rgba(110,231,255,0.35)"
-      : "rgba(184,108,255,0.45)";
+    ctx.fillStyle = i % 2 ? "rgba(110,231,255,0.35)" : "rgba(184,108,255,0.45)";
     ctx.fill();
     ctx.strokeStyle = "rgba(255,255,255,0.35)";
     ctx.lineWidth = 3;
@@ -219,31 +242,19 @@ function drawWheel() {
     ctx.fillStyle = "#fff";
     ctx.shadowColor = "black";
     ctx.shadowBlur = 8;
-
     wrapText(ctx, text, r - 36, 0, 150, 18);
     ctx.restore();
   });
-
-  ctx.beginPath();
-  ctx.arc(cx, cy, 70, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(0,0,0,0.6)";
-  ctx.fill();
-  ctx.strokeStyle = "white";
-  ctx.lineWidth = 3;
-  ctx.stroke();
-
-  ctx.fillStyle = "white";
-  ctx.font = "900 22px Arial";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("SPIN", cx, cy);
 }
 
 drawWheel();
 
+/* ================= SPIN ================= */
 function spin(user, amount) {
   if (spinning) return;
   spinning = true;
+
+  playSound(soundSpin);
 
   panel.classList.remove("flash");
   void panel.offsetWidth;
@@ -269,17 +280,36 @@ function spin(user, amount) {
         ((Math.PI*2)/ITEMS.length)
       );
       lastResult.textContent = ITEMS[index];
+      playSound(soundWin);
       spinning = false;
     }
   }
   requestAnimationFrame(frame);
 }
 
-window.addEventListener("message", e=>{
-  if(e.data?.type==="tip" && e.data.amount>=SPIN_COST){
-    spin(e.data.user||"anon", e.data.amount);
+/* ================= TIP HANDLING ================= */
+function handleTip(data){
+  if(!data || data.type !== "tip") return;
+
+  playSound(soundTip);
+
+  const user = data.user || "anon";
+  const amount = Number(data.amount || 0);
+
+  if(amount >= SPIN_COST){
+    spin(user, amount);
+  } else {
+    lastTip.textContent = `Tip ${amount} by ${user}`;
   }
-});
+}
+
+window.addEventListener("message", e => handleTip(e.data));
+
+try{
+  const bc = new BroadcastChannel("cb-overlays");
+  bc.onmessage = e => handleTip(e.data);
+}catch(e){}
 </script>
+
 </body>
 </html>
