@@ -1,127 +1,143 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>Tip Goal Overlay</title>
-
 <style>
-body{
-  margin:0;
-  overflow:hidden;
-  background:transparent;
-  font-family:Arial, sans-serif;
-  color:#fff;
-}
+  :root{
+    --text: #ffffff;
+    --shadow: rgba(0,0,0,0.85);
+    --track: rgba(20,20,20,0.65);
+    --fill: #00d8ff;
+    --glow: rgba(0,216,255,0.85);
+  }
 
-#container{
-  position:absolute;
-  top:20px;
-  left:20px;
-  width:700px;                 /* slightly wider so it never clips */
-}
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    color: var(--text);
+  }
 
-/* HEADER */
-#header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:16px;
-  margin-bottom:10px;
-}
+  /* POSITION: top-left */
+  #container {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 650px;
+    pointer-events: none;
+  }
 
-#title{
-  font-size:26px;
-  font-weight:900;
-  color:#ffffff;
-  text-shadow:0 0 6px rgba(0,0,0,0.85);
-  white-space:nowrap;          /* prevent wrapping */
-  flex:1;                      /* title uses remaining space */
-  overflow:hidden;
-  text-overflow:ellipsis;      /* if it ever gets too long */
-}
+  /* Header row (title left, counter right) */
+  #header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
 
-#counter{
-  font-size:22px;
-  font-weight:900;
-  color:#ffffff;
-  text-shadow:0 0 6px rgba(0,0,0,0.85);
+  #title {
+    font-size: 26px;
+    font-weight: 800;
+    text-shadow: 2px 2px 6px var(--shadow);
+    white-space: nowrap;
+  }
 
-  white-space:nowrap;          /* IMPORTANT: keeps 0 / 50000 on one line */
-  flex:0 0 auto;
-  min-width:230px;             /* IMPORTANT: enough room for big numbers */
-  text-align:right;
-}
+  #counter {
+    font-size: 22px;
+    font-weight: 800;
+    text-shadow: 2px 2px 6px var(--shadow);
+    white-space: nowrap;
+    opacity: 0.95;
+  }
 
-/* BAR */
-#progressWrap{
-  position:relative;
-  height:40px;
-  background:rgba(0,0,0,0.6);
-  border-radius:20px;
-  overflow:hidden;
-  border:2px solid rgba(255,255,255,0.5);
-}
+  #progressContainer {
+    position: relative;
+    width: 100%;
+    height: 18px;
+    background: var(--track);
+    border-radius: 999px;
+    overflow: hidden;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+  }
 
-#progressBar{
-  height:100%;
-  width:0%;
-  background:linear-gradient(90deg,#ffffff,#dddddd);
-  transition:width .45s ease;
-}
+  #progressBar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, rgba(0,216,255,0.9), rgba(0,216,255,0.55));
+    border-radius: 999px;
+    transition: width 450ms ease;
+  }
 
-/* GLOW ON TIP */
-.glow{
-  animation:pulse 1s ease-out;
-}
-@keyframes pulse{
-  0%{box-shadow:0 0 0 transparent}
-  50%{box-shadow:0 0 20px rgba(255,255,255,0.9)}
-  100%{box-shadow:0 0 0 transparent}
-}
+  /* Glow animation on tip */
+  @keyframes tipGlow {
+    0%   { filter: drop-shadow(0 0 0 rgba(0,0,0,0)); }
+    35%  { filter: drop-shadow(0 0 14px var(--glow)); }
+    100% { filter: drop-shadow(0 0 0 rgba(0,0,0,0)); }
+  }
+
+  .glow {
+    animation: tipGlow 900ms ease-out;
+  }
 </style>
 </head>
-
 <body>
-<div id="container">
-  <div id="header">
-    <div id="title">Tip Goal: 50000 tokens</div>
-    <div id="counter">0 / 50000</div>
-  </div>
+  <div id="container">
+    <div id="header">
+      <div id="title">Tip Goal: <span id="targetText">50000</span> tokens</div>
+      <div id="counter"><span id="currentText">0</span> / <span id="targetText2">50000</span></div>
+    </div>
 
-  <div id="progressWrap">
-    <div id="progressBar"></div>
+    <div id="progressContainer">
+      <div id="progressBar"></div>
+    </div>
   </div>
-</div>
 
 <script>
-const TARGET = 50000;
-let current = 0;
+  // ===== SETTINGS =====
+  const TARGET = 50000;   // <-- change this to whatever your goal is
+  // ====================
 
-const counter = document.getElementById("counter");
-const bar = document.getElementById("progressBar");
-const wrap = document.getElementById("progressWrap");
+  const container = document.getElementById("container");
+  const currentText = document.getElementById("currentText");
+  const targetText = document.getElementById("targetText");
+  const targetText2 = document.getElementById("targetText2");
+  const bar = document.getElementById("progressBar");
 
-function update(){
-  const pct = Math.min((current / TARGET) * 100, 100);
-  bar.style.width = pct + "%";
-  counter.textContent = `${current} / ${TARGET}`;
-}
+  targetText.textContent = TARGET;
+  targetText2.textContent = TARGET;
 
-window.addEventListener("message", e=>{
-  const d = e.data || {};
-  if(d.type !== "tip") return;
+  let current = 0;
 
-  current += Number(d.amount || 0);
-  if(current > TARGET) current = TARGET;
+  function render() {
+    const pct = Math.max(0, Math.min(100, (current / TARGET) * 100));
+    bar.style.width = pct + "%";
+    currentText.textContent = current;
+  }
 
-  update();
+  function glow() {
+    container.classList.remove("glow");
+    // force reflow so it re-triggers every time
+    void container.offsetWidth;
+    container.classList.add("glow");
+  }
 
-  wrap.classList.remove("glow");
-  void wrap.offsetWidth;
-  wrap.classList.add("glow");
-});
+  window.addEventListener("message", (event) => {
+    const data = event.data || {};
+    if (data.type === "tip") {
+      const amt = Number(data.amount) || 0;
+      if (amt <= 0) return;
 
-update();
+      current = Math.min(TARGET, current + amt);
+      render();
+      glow();
+    }
+  });
+
+  render();
 </script>
 </body>
 </html>
