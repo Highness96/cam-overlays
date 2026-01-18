@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Chat Overlay</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      color: #fff;
+      font-size: 24px;
+    }
+    #chatBox {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      width: 400px;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div id="chatBox"></div>
+  <script>
+    window.addEventListener("message", (event) => {
+      const d = event.data;
+      if (d.type === "chat") {
+        const chatBox = document.getElementById("chatBox");
+        const line = document.createElement("div");
+        line.textContent = d.user + ": " + d.message;
+        chatBox.prepend(line);
+      }
+    });
+  </script>
+</body>
+</html>
