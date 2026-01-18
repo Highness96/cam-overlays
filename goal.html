@@ -17,31 +17,39 @@ body{
   position:absolute;
   top:20px;
   left:20px;
-  width:650px;
+  width:700px;                 /* slightly wider so it never clips */
 }
 
 /* HEADER */
 #header{
   display:flex;
-  justify-content:space-between;
   align-items:center;
+  justify-content:space-between;
+  gap:16px;
   margin-bottom:10px;
 }
 
 #title{
-  font-size:28px;
+  font-size:26px;
   font-weight:900;
   color:#ffffff;
   text-shadow:0 0 6px rgba(0,0,0,0.85);
+  white-space:nowrap;          /* prevent wrapping */
+  flex:1;                      /* title uses remaining space */
+  overflow:hidden;
+  text-overflow:ellipsis;      /* if it ever gets too long */
 }
 
 #counter{
   font-size:22px;
   font-weight:900;
   color:#ffffff;
-  min-width:170px;
-  text-align:right;
   text-shadow:0 0 6px rgba(0,0,0,0.85);
+
+  white-space:nowrap;          /* IMPORTANT: keeps 0 / 50000 on one line */
+  flex:0 0 auto;
+  min-width:230px;             /* IMPORTANT: enough room for big numbers */
+  text-align:right;
 }
 
 /* BAR */
