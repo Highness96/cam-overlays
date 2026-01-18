@@ -44,10 +44,6 @@
   let current = 0;
   const target = 1000;
 
-  current = 400;
-document.getElementById("progressBar").style.width = (current / target * 100) + "%";
-document.getElementById("goalText").textContent = current + " / " + target + " tokens";
-
   window.addEventListener("message", (event) => {
     const data = event.data;
     if (data.type === "tip") {
@@ -60,4 +56,5 @@ document.getElementById("goalText").textContent = current + " / " + target + " t
 </script>
 </body>
 </html>
+
 
