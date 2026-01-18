@@ -5,39 +5,35 @@
 <title>Tip Menu</title>
 
 <style>
-:root{
-  --purple:#a855f7;
-  --purple2:#c084fc;
-  --bg:rgba(20,10,40,0.8);
-  --glow:rgba(168,85,247,.9);
-}
-
 body{
   margin:0;
   background:transparent;
   font-family:Arial, sans-serif;
 }
 
-/* MENU BOX */
+/* BIG MENU BOX */
 #menu{
   position:absolute;
   top:20px;
   right:20px;
-  width:320px;
-  background:var(--bg);
-  border:2px solid rgba(168,85,247,.6);
-  border-radius:12px;
-  padding:14px;
-  box-shadow:0 0 18px rgba(168,85,247,.6);
+
+  width:480px;               /* MUCH WIDER */
+  background:rgba(0,0,0,0.75);
+  border:3px solid rgba(255,255,255,0.6);
+  border-radius:16px;
+  padding:18px;
+
+  box-shadow:0 0 25px rgba(0,0,0,0.9);
 }
 
+/* TITLE */
 #title{
-  font-size:20px;
+  font-size:30px;            /* MUCH LARGER */
   font-weight:900;
-  color:var(--purple2);
+  color:#ffffff;
   text-align:center;
-  margin-bottom:10px;
-  text-shadow:0 0 10px var(--glow);
+  margin-bottom:14px;
+  text-shadow:0 0 10px rgba(0,0,0,0.9);
 }
 
 /* LIST */
@@ -50,20 +46,21 @@ ul{
 li{
   display:flex;
   justify-content:space-between;
-  gap:10px;
-  padding:6px 0;
-  border-bottom:1px solid rgba(192,132,252,.25);
-  color:var(--purple);
-  text-shadow:0 0 6px rgba(168,85,247,.7);
-  font-size:14px;
+  gap:16px;
+  padding:10px 0;
+  border-bottom:1px solid rgba(255,255,255,0.25);
+  color:#ffffff;
+  font-size:22px;            /* MUCH LARGER */
+  font-weight:700;
+  text-shadow:0 0 6px rgba(0,0,0,0.85);
 }
 
 li:last-child{border:none}
 
 .price{
   font-weight:900;
-  color:var(--purple2);
   white-space:nowrap;
+  min-width:140px;
 }
 
 .action{
@@ -71,13 +68,13 @@ li:last-child{border:none}
   word-break:break-word;
 }
 
-/* TIP GLOW */
+/* FLASH MENU ON TIP */
 .glow{
   animation:pulse 1s ease-out;
 }
 @keyframes pulse{
   0%{box-shadow:0 0 0 transparent}
-  50%{box-shadow:0 0 28px var(--glow)}
+  50%{box-shadow:0 0 30px rgba(255,255,255,0.9)}
   100%{box-shadow:0 0 0 transparent}
 }
 </style>
@@ -108,6 +105,7 @@ MENU_ITEMS.sort((a,b)=>a.tokens-b.tokens).forEach(i=>{
   list.appendChild(li);
 });
 
+/* Optional glow on tip */
 window.addEventListener("message", e=>{
   if(e.data?.type !== "tip") return;
   const menu=document.getElementById("menu");
