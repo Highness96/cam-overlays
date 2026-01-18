@@ -2,58 +2,119 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Tip Menu Overlay</title>
-<style>
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    color: #ffffff;
-    background: rgba(0, 0, 0, 0.4);
-  }
-  
-  #menuContainer {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    width: 350px;
-    padding: 12px;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.6);
-    border: 2px solid #00d8ff;
-  }
-  
-  #menuTitle {
-    font-size: 26px;
-    font-weight: bold;
-    text-align: center;
-    margin-bottom: 8px;
-    text-shadow: 1px 1px 6px rgba(0,0,0,0.8);
-  }
-  
-  .menuItem {
-    font-size: 18px;
-    margin: 6px 0;
-    padding: 4px 6px;
-    line-height: 1.3;
-  }
+<title>Tip Menu</title>
 
-  /* make sure text wraps cleanly */
-  .menuItem span {
-    display: inline-block;
-    width: 100%;
-  }
+<style>
+:root{
+  --purple:#a855f7;
+  --purple2:#c084fc;
+  --bg:rgba(20,10,40,0.8);
+  --glow:rgba(168,85,247,.9);
+}
+
+body{
+  margin:0;
+  background:transparent;
+  font-family:Arial, sans-serif;
+}
+
+/* MENU BOX */
+#menu{
+  position:absolute;
+  top:20px;
+  right:20px;
+  width:320px;
+  background:var(--bg);
+  border:2px solid rgba(168,85,247,.6);
+  border-radius:12px;
+  padding:14px;
+  box-shadow:0 0 18px rgba(168,85,247,.6);
+}
+
+#title{
+  font-size:20px;
+  font-weight:900;
+  color:var(--purple2);
+  text-align:center;
+  margin-bottom:10px;
+  text-shadow:0 0 10px var(--glow);
+}
+
+/* LIST */
+ul{
+  margin:0;
+  padding:0;
+  list-style:none;
+}
+
+li{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:6px 0;
+  border-bottom:1px solid rgba(192,132,252,.25);
+  color:var(--purple);
+  text-shadow:0 0 6px rgba(168,85,247,.7);
+  font-size:14px;
+}
+
+li:last-child{border:none}
+
+.price{
+  font-weight:900;
+  color:var(--purple2);
+  white-space:nowrap;
+}
+
+.action{
+  flex:1;
+  word-break:break-word;
+}
+
+/* TIP GLOW */
+.glow{
+  animation:pulse 1s ease-out;
+}
+@keyframes pulse{
+  0%{box-shadow:0 0 0 transparent}
+  50%{box-shadow:0 0 28px var(--glow)}
+  100%{box-shadow:0 0 0 transparent}
+}
 </style>
 </head>
+
 <body>
-  <div id="menuContainer">
-    <div id="menuTitle">Tip Menu</div>
-    <div class="menuItem"><span>50 tokens – Take shirt off</span></div>
-    <div class="menuItem"><span>1000 tokens – Show Cock</span></div>
-    <div class="menuItem"><span>2000 tokens – Get Naked for 5 minutes</span></div>
-    <div class="menuItem"><span>5000 tokens – Dance with no clothes on for 2 minutes</span></div>
-    <div class="menuItem"><span>10000 tokens – Nut on camera</span></div>
-  </div>
+<div id="menu">
+  <div id="title">Tip Menu</div>
+  <ul id="list"></ul>
+</div>
+
+<script>
+const MENU_ITEMS = [
+  {tokens:50, text:"Take shirt off"},
+  {tokens:1000, text:"Show cock"},
+  {tokens:2000, text:"Get naked for 5 minutes"},
+  {tokens:5000, text:"Dance with no clothes on (2 minutes)"},
+  {tokens:10000, text:"Nut on camera"}
+];
+
+const list = document.getElementById("list");
+MENU_ITEMS.sort((a,b)=>a.tokens-b.tokens).forEach(i=>{
+  const li=document.createElement("li");
+  li.innerHTML = `
+    <div class="price">${i.tokens} tokens</div>
+    <div class="action">${i.text}</div>
+  `;
+  list.appendChild(li);
+});
+
+window.addEventListener("message", e=>{
+  if(e.data?.type !== "tip") return;
+  const menu=document.getElementById("menu");
+  menu.classList.remove("glow");
+  void menu.offsetWidth;
+  menu.classList.add("glow");
+});
+</script>
 </body>
 </html>
-
