@@ -190,6 +190,23 @@ function playSound(a){
   }catch(e){}
 }
 
+// unlock audio for OBS/browser
+function unlockAudio(){
+  [soundTip, soundSpin, soundWin].forEach(a=>{
+    if(!a) return;
+    a.muted = true;
+    const p = a.play();
+    if (p && p.catch) p.catch(()=>{});
+    a.pause();
+    a.currentTime = 0;
+    a.muted = false;
+  });
+  window.removeEventListener("pointerdown", unlockAudio);
+  window.removeEventListener("keydown", unlockAudio);
+}
+window.addEventListener("pointerdown", unlockAudio);
+window.addEventListener("keydown", unlockAudio);
+
 /* ================= WHEEL ================= */
 let angle = 0;
 let spinning = false;
@@ -218,8 +235,9 @@ function drawWheel() {
   const r = 330;
   const slice = (Math.PI * 2) / ITEMS.length;
 
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // slices
   ITEMS.forEach((text, i) => {
     const start = angle + i * slice;
     const end = start + slice;
@@ -229,6 +247,7 @@ function drawWheel() {
     ctx.arc(cx, cy, r, start, end);
     ctx.fillStyle = i % 2 ? "rgba(110,231,255,0.35)" : "rgba(184,108,255,0.45)";
     ctx.fill();
+
     ctx.strokeStyle = "rgba(255,255,255,0.35)";
     ctx.lineWidth = 3;
     ctx.stroke();
@@ -245,6 +264,22 @@ function drawWheel() {
     wrapText(ctx, text, r - 36, 0, 150, 18);
     ctx.restore();
   });
+
+  // center hub
+  ctx.beginPath();
+  ctx.arc(cx, cy, 70, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0,0,0,0.6)";
+  ctx.fill();
+  ctx.strokeStyle = "white";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  ctx.fillStyle = "white";
+  ctx.font = "900 22px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.shadowBlur = 0;
+  ctx.fillText("SPIN", cx, cy);
 }
 
 drawWheel();
@@ -273,7 +308,7 @@ function spin(user, amount) {
     const t = Math.min(1,(now-startTime)/duration);
     angle += (final-angle)*ease(t);
     drawWheel();
-    if(t<1) requestAnimationFrame(frame);
+    if(t < 1) requestAnimationFrame(frame);
     else{
       const index = Math.floor(
         ((Math.PI*1.5 - angle + Math.PI*2)%(Math.PI*2)) /
@@ -303,8 +338,10 @@ function handleTip(data){
   }
 }
 
+// postMessage support
 window.addEventListener("message", e => handleTip(e.data));
 
+// BroadcastChannel (Dev Portal → OBS)
 try{
   const bc = new BroadcastChannel("cb-overlays");
   bc.onmessage = e => handleTip(e.data);
