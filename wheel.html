@@ -332,21 +332,30 @@ function wrapTwoLines(text){
 
 function drawTextOnArc(text, centerAngle, radius, maxArcPx, maxSizePx){
   // Bold, modern, readable
+  const TAU = Math.PI * 2;
+
+  // Normalize angle to [0, 2π)
+  let aNorm = centerAngle % TAU;
+  if (aNorm < 0) aNorm += TAU;
+
+  // Bottom half of wheel in canvas coords: (0..π) is bottom (because +Y is down)
+  const isBottom = (aNorm > 0 && aNorm < Math.PI);
+
+  // Fit font size (1-line first)
   let size = maxSizePx;
   const minSize = Math.max(12, Math.floor(maxSizePx * 0.62));
 
-  // Find size that fits as 1-line; if not, allow 2 lines
   for (; size >= minSize; size--){
     ctx.font = `900 ${size}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial`;
     if (ctx.measureText(text).width <= maxArcPx) break;
   }
-  const font = `900 ${size}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial`;
-  ctx.font = font;
 
+  ctx.font = `900 ${size}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial`;
+
+  // If still too wide, try two-line split
   let lines = [text];
   if (ctx.measureText(text).width > maxArcPx){
-    // 2-line attempt
-    lines = wrapTwoLines(text);
+    lines = wrapTwoLines(text); // uses your existing helper
   }
 
   const lineGap = Math.max(10, size * 0.90);
@@ -355,44 +364,65 @@ function drawTextOnArc(text, centerAngle, radius, maxArcPx, maxSizePx){
   lines.forEach((line, idx) => {
     const rLine = startRadius + idx * lineGap * 0.72;
 
-    // draw glyph-by-glyph for perfect curve, never awkward tilt
-    const widths = [...line].map(ch => ctx.measureText(ch).width);
+    // Build glyph widths
+    let chars = [...line];
+    let widths = chars.map(ch => ctx.measureText(ch).width);
+
+    // Total pixel width → arc span
     const totalPx = widths.reduce((a,b)=>a+b,0);
     const arcPx = Math.min(maxArcPx, totalPx);
     const span = arcPx / rLine;
+
+    // We draw centered on centerAngle
     const start = centerAngle - span/2;
+
+    // Flip logic:
+    // If bottom half: reverse characters and walk angles backwards so it reads left→right.
+    if (isBottom){
+      chars = chars.reverse();
+      widths = widths.reverse();
+    }
 
     ctx.save();
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
 
-    // subtle glow + outline
+    // outline + subtle glow
     ctx.shadowColor = "rgba(186,99,255,0.22)";
     ctx.shadowBlur = Math.max(6, size * 0.45);
     ctx.fillStyle = "rgba(245,245,255,0.95)";
     ctx.strokeStyle = "rgba(10,12,30,0.72)";
     ctx.lineWidth = Math.max(2, size * 0.10);
 
-    let a = start;
-    for (let i=0;i<line.length;i++){
-      const ch = line[i];
-      const chA = widths[i] / rLine;
+    if (!isBottom){
+      // Top half: move forward
+      let ang = start;
+      for (let i=0;i<chars.length;i++){
+        const ch = chars[i];
+        const chA = widths[i] / rLine;
+        const mid = ang + chA/2;
 
-      const mid = a + chA/2;
-      ctx.save();
-      ctx.translate(0,0);
-      ctx.rotate(mid);
-      ctx.translate(0, -rLine);
-      ctx.rotate(Math.PI); // outward readable
-      ctx.strokeText(ch, 0, 0);
-      ctx.fillText(ch, 0, 0);
-      ctx.restore();
+        ctx.save();
+        ctx.rotate(mid);
+        ctx.translate(0, -rLine);
+        ctx.rotate(Math.PI/2);          // tangent, upright
+        ctx.strokeText(ch, 0, 0);
+        ctx.fillText(ch, 0, 0);
+        ctx.restore();
 
-      a += chA;
-    }
-    ctx.restore();
-  });
-}
+        ang += chA;
+      }
+    } else {
+      // Bottom half: walk backward (and reverse chars) to keep readable
+      let ang = start + span;
+      for (let i=0;i<chars.length;i++){
+        const ch = chars[i];
+        const chA = widths[i] / rLine;
+        const mid = ang - chA/2;
+
+        ctx.save();
+        ctx.rotate(mid);
+        ctx.tra
 
 /* ================= DRAW (HIGH-END) ================= */
 function drawWheel(){
@@ -692,3 +722,4 @@ drawWheel();
 </script>
 </body>
 </html>
+
