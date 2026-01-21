@@ -101,23 +101,23 @@ html, body{
 /* clean glowing pointer (SVG, crisp 4K) */
 #pointer{
   position:absolute;
-  top:104px;
+  top:92px;                 /* slightly higher for better alignment */
   left:50%;
   transform:translateX(-50%);
-  width:88px;
-  height:88px;
+  width:90px;
+  height:90px;
   pointer-events:none;
-  filter: drop-shadow(0 0 14px rgba(110,231,255,0.32))
-          drop-shadow(0 0 22px rgba(186,99,255,0.22));
+  filter: drop-shadow(0 0 16px rgba(110,231,255,0.40))
+          drop-shadow(0 0 26px rgba(186,99,255,0.28));
 }
 
 #canvas{
   position:absolute;
   left:50%;
-  top:56%;
+  top:52%;                  /* moved up so result bar never competes */
   transform:translate(-50%, -50%);
-  width:780px;
-  height:780px;
+  width:760px;              /* slightly smaller = more breathing room */
+  height:760px;
 }
 
 #result{
@@ -125,14 +125,14 @@ html, body{
   left:24px;
   right:24px;
   bottom:24px;
-  padding:18px 20px;
+  padding:16px 18px;
   font-size:20px;
   border-radius:18px;
-  background: rgba(10,12,30,0.42);
+  background: rgba(10,12,30,0.46);
   border: 1px solid rgba(186,99,255,0.16);
   box-shadow:
-    0 0 24px rgba(186,99,255,0.10),
-    0 0 18px rgba(110,231,255,0.06);
+    0 0 28px rgba(186,99,255,0.12),
+    0 0 20px rgba(110,231,255,0.08);
   display:flex;
   justify-content:space-between;
   gap:16px;
@@ -142,7 +142,7 @@ html, body{
 .flash{ animation: flash 0.9s ease-out; }
 @keyframes flash{
   0%   { box-shadow: 0 18px 60px rgba(0,0,0,0.35), 0 0 0 rgba(0,0,0,0); }
-  30%  { box-shadow: 0 18px 60px rgba(0,0,0,0.35), 0 0 120px rgba(186,99,255,0.30), 0 0 140px rgba(110,231,255,0.18); }
+  30%  { box-shadow: 0 18px 60px rgba(0,0,0,0.35), 0 0 140px rgba(186,99,255,0.34), 0 0 170px rgba(110,231,255,0.22); }
   100% { box-shadow: 0 18px 60px rgba(0,0,0,0.35), 0 0 70px rgba(186,99,255,0.12), 0 0 90px rgba(110,231,255,0.08); }
 }
 </style>
@@ -161,25 +161,25 @@ html, body{
   <svg id="pointer" viewBox="0 0 100 100" aria-hidden="true">
     <defs>
       <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="rgba(110,231,255,0.95)"/>
-        <stop offset="1" stop-color="rgba(186,99,255,0.95)"/>
+        <stop offset="0" stop-color="rgba(110,231,255,0.98)"/>
+        <stop offset="1" stop-color="rgba(186,99,255,0.98)"/>
       </linearGradient>
     </defs>
     <path d="M50 6
-             C58 18, 70 28, 90 35
-             C70 39, 58 52, 50 74
-             C42 52, 30 39, 10 35
+             C58 18, 70 28, 92 36
+             C70 40, 58 54, 50 76
+             C42 54, 30 40, 8 36
              C30 28, 42 18, 50 6Z"
           fill="url(#pg)" opacity="0.98"/>
     <path d="M50 14
-             C56 24, 65 30, 78 35
-             C65 38, 56 48, 50 64
-             C44 48, 35 38, 22 35
-             C35 30, 44 24, 50 14Z"
+             C56 24, 66 30, 80 36
+             C66 39, 56 50, 50 66
+             C44 50, 34 39, 20 36
+             C34 30, 44 24, 50 14Z"
           fill="rgba(10,12,30,0.30)"/>
   </svg>
 
-  <canvas id="canvas" width="780" height="780"></canvas>
+  <canvas id="canvas" width="760" height="760"></canvas>
 
   <div id="result">
     <div>Result: <b id="lastResult">—</b></div>
@@ -223,11 +223,11 @@ function playSound(a){
 /* ================= CANVAS (CRISP 1080p/4K) ================= */
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d", { alpha:true });
-const LOGICAL_SIZE = 780;
 
+const LOGICAL_SIZE = 760; // matches CSS size; internal DPR scaling makes it crisp
 function setupDPR(){
   const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
-  canvas.width = Math.round(LOGICAL_SIZE * dpr);
+  canvas.width  = Math.round(LOGICAL_SIZE * dpr);
   canvas.height = Math.round(LOGICAL_SIZE * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
@@ -269,18 +269,25 @@ function wrapTwoLines(text){
   return best ? [best.a, best.b] : [text];
 }
 
-/* FIXED: readable curved text (no mirrored nonsense) */
+/*
+  FIXED TEXT RENDERING:
+  - No mirrored/reversed nonsense
+  - Consistent tangent orientation
+  - Auto scales + adds safe padding
+  - Stronger outline/glow for camera readability
+*/
 function drawTextOnArc(text, centerAngle, radius, maxArcPx, maxSizePx){
-  // normalize angle to [0..2π)
+  // normalize to [0..2π)
   let aNorm = centerAngle % TAU;
   if (aNorm < 0) aNorm += TAU;
 
-  // canvas +Y is down => bottom half is (0..π)
-  const isBottom = (aNorm > 0 && aNorm < Math.PI);
+  // "left half" flip rule (robust for canvas coords):
+  // If the slice midpoint is on the left side, flip the text so it isn't upside-down.
+  const flip = (aNorm > Math.PI/2 && aNorm < 3*Math.PI/2);
 
-  // size fit
+  // fit size
   let size = maxSizePx;
-  const minSize = Math.max(12, Math.floor(maxSizePx * 0.62));
+  const minSize = Math.max(14, Math.floor(maxSizePx * 0.66));
 
   for (; size >= minSize; size--){
     ctx.font = `900 ${size}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial`;
@@ -288,15 +295,15 @@ function drawTextOnArc(text, centerAngle, radius, maxArcPx, maxSizePx){
   }
   ctx.font = `900 ${size}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial`;
 
-  // lines
+  // lines if still long
   let lines = [text];
   if (ctx.measureText(text).width > maxArcPx) lines = wrapTwoLines(text);
 
-  const lineGap = Math.max(10, size * 0.90);
-  const startRadius = lines.length === 2 ? (radius - lineGap * 0.40) : radius;
+  const lineGap = Math.max(10, size * 0.92);
+  const startRadius = (lines.length === 2) ? (radius - lineGap * 0.42) : radius;
 
-  lines.forEach((line, idx) => {
-    const rLine = startRadius + idx * lineGap * 0.72;
+  lines.forEach((line, li) => {
+    const rLine = startRadius + li * lineGap * 0.74;
 
     let chars = [...line];
     let widths = chars.map(ch => ctx.measureText(ch).width);
@@ -304,10 +311,12 @@ function drawTextOnArc(text, centerAngle, radius, maxArcPx, maxSizePx){
     const totalPx = widths.reduce((a,b)=>a+b,0);
     const arcPx = Math.min(maxArcPx, totalPx);
     const span = arcPx / rLine;
+
+    // centered around centerAngle
     const start = centerAngle - span/2;
 
-    // if bottom, reverse characters and walk backwards so it reads left->right
-    if (isBottom){
+    // if flipped, render in reverse order and walk backward so it still reads left->right
+    if (flip){
       chars = chars.reverse();
       widths = widths.reverse();
     }
@@ -316,14 +325,14 @@ function drawTextOnArc(text, centerAngle, radius, maxArcPx, maxSizePx){
     ctx.textBaseline = "middle";
     ctx.textAlign = "center";
 
-    // outline + subtle glow
-    ctx.shadowColor = "rgba(186,99,255,0.22)";
-    ctx.shadowBlur = Math.max(6, size * 0.45);
-    ctx.fillStyle = "rgba(245,245,255,0.95)";
-    ctx.strokeStyle = "rgba(10,12,30,0.72)";
-    ctx.lineWidth = Math.max(2, size * 0.10);
+    // stronger outline + clearer glow
+    ctx.shadowColor = "rgba(110,231,255,0.18)";
+    ctx.shadowBlur = Math.max(8, size * 0.55);
+    ctx.fillStyle = "rgba(245,245,255,0.96)";
+    ctx.strokeStyle = "rgba(10,12,30,0.78)";
+    ctx.lineWidth = Math.max(2.4, size * 0.12);
 
-    if (!isBottom){
+    if (!flip){
       let ang = start;
       for (let i=0;i<chars.length;i++){
         const ch = chars[i];
@@ -333,7 +342,7 @@ function drawTextOnArc(text, centerAngle, radius, maxArcPx, maxSizePx){
         ctx.save();
         ctx.rotate(mid);
         ctx.translate(0, -rLine);
-        ctx.rotate(Math.PI/2); // tangent, upright
+        ctx.rotate(Math.PI/2); // tangent upright
         ctx.strokeText(ch, 0, 0);
         ctx.fillText(ch, 0, 0);
         ctx.restore();
@@ -350,7 +359,7 @@ function drawTextOnArc(text, centerAngle, radius, maxArcPx, maxSizePx){
         ctx.save();
         ctx.rotate(mid);
         ctx.translate(0, -rLine);
-        ctx.rotate(-Math.PI/2); // tangent, upright
+        ctx.rotate(-Math.PI/2); // tangent upright (flipped side)
         ctx.strokeText(ch, 0, 0);
         ctx.fillText(ch, 0, 0);
         ctx.restore();
@@ -378,7 +387,7 @@ function sliceColors(i){
 function drawWheel(){
   const S = LOGICAL_SIZE;
   const cx = S/2, cy = S/2;
-  const R  = (S/2) * 0.93;
+  const R  = (S/2) * 0.94;
 
   ctx.clearRect(0,0,S,S);
 
@@ -386,7 +395,7 @@ function drawWheel(){
   ctx.save();
   ctx.beginPath();
   ctx.arc(cx, cy + R*0.06, R*0.98, 0, TAU);
-  ctx.fillStyle = "rgba(0,0,0,0.10)";
+  ctx.fillStyle = "rgba(0,0,0,0.12)";
   ctx.filter = "blur(14px)";
   ctx.fill();
   ctx.restore();
@@ -411,8 +420,8 @@ function drawWheel(){
       fill = ctx.createConicGradient(mid, cx, cy);
       const [cA, cB] = sliceColors(i);
       fill.addColorStop(0.00, cA);
-      fill.addColorStop(0.40, "rgba(26,14,64,0.98)");
-      fill.addColorStop(0.72, cB);
+      fill.addColorStop(0.42, "rgba(26,14,64,0.98)");
+      fill.addColorStop(0.74, cB);
       fill.addColorStop(1.00, cA);
     } else {
       const [cA, cB] = sliceColors(i);
@@ -427,7 +436,7 @@ function drawWheel(){
     // glass sheen
     const sheen = ctx.createRadialGradient(cx - R*0.25, cy - R*0.35, R*0.12, cx, cy, R);
     sheen.addColorStop(0.00, "rgba(255,255,255,0.18)");
-    sheen.addColorStop(0.25, "rgba(255,255,255,0.08)");
+    sheen.addColorStop(0.26, "rgba(255,255,255,0.08)");
     sheen.addColorStop(0.55, "rgba(255,255,255,0.00)");
     sheen.addColorStop(1.00, "rgba(255,255,255,0.00)");
     ctx.fillStyle = sheen;
@@ -438,19 +447,19 @@ function drawWheel(){
     // vignette
     const vign = ctx.createRadialGradient(cx,cy,R*0.25,cx,cy,R);
     vign.addColorStop(0.0, "rgba(0,0,0,0.00)");
-    vign.addColorStop(1.0, "rgba(0,0,0,0.22)");
+    vign.addColorStop(1.0, "rgba(0,0,0,0.24)");
     ctx.fillStyle = vign;
     ctx.fill();
 
     ctx.restore();
   }
 
-  // glowing dividers
+  // glowing dividers (stronger so it matches your “premium” spec)
   ctx.save();
   ctx.lineWidth = Math.max(1.2, R*0.006);
-  ctx.strokeStyle = "rgba(120,245,255,0.22)";
-  ctx.shadowColor = "rgba(120,245,255,0.55)";
-  ctx.shadowBlur = Math.max(10, R*0.05);
+  ctx.strokeStyle = "rgba(120,245,255,0.30)";
+  ctx.shadowColor = "rgba(120,245,255,0.70)";
+  ctx.shadowBlur = Math.max(14, R*0.06);
 
   for (let i=0;i<n;i++){
     const a = angle + i*slice;
@@ -461,27 +470,35 @@ function drawWheel(){
   }
   ctx.restore();
 
-  // outer rim
+  // outer rim (more neon)
   ctx.save();
   ctx.beginPath();
   ctx.arc(cx,cy,R,0,TAU);
-  ctx.lineWidth = Math.max(2, R*0.020);
-  ctx.strokeStyle = "rgba(10,12,30,0.55)";
+  ctx.lineWidth = Math.max(2, R*0.022);
+  ctx.strokeStyle = "rgba(10,12,30,0.60)";
   ctx.stroke();
 
   ctx.beginPath();
   ctx.arc(cx,cy,R,0,TAU);
-  ctx.lineWidth = Math.max(2, R*0.012);
-  ctx.shadowColor = "rgba(186,99,255,0.55)";
+  ctx.lineWidth = Math.max(2, R*0.013);
+  ctx.shadowColor = "rgba(186,99,255,0.72)";
+  ctx.shadowBlur = Math.max(16, R*0.075);
+  ctx.strokeStyle = "rgba(186,99,255,0.28)";
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(cx,cy,R,0,TAU);
+  ctx.lineWidth = Math.max(2, R*0.010);
+  ctx.shadowColor = "rgba(110,231,255,0.55)";
   ctx.shadowBlur = Math.max(12, R*0.06);
-  ctx.strokeStyle = "rgba(186,99,255,0.22)";
+  ctx.strokeStyle = "rgba(110,231,255,0.16)";
   ctx.stroke();
   ctx.restore();
 
-  // text (curved + readable)
-  const textRadius = R * 0.72;
-  const maxArcPx = (slice * textRadius) * 0.86;
-  const maxSize = Math.floor(clamp(R*0.070, 16, 40));
+  // text (pulled inward, more padding, more consistent)
+  const textRadius = R * 0.69;                 // inward = less edge-cramped
+  const maxArcPx   = (slice * textRadius) * 0.78; // padding so nothing kisses dividers
+  const maxSize    = Math.floor(clamp(R*0.082, 18, 46)); // bigger for OBS readability
 
   for (let i=0;i<n;i++){
     const mid = angle + (i+0.5)*slice;
@@ -492,8 +509,8 @@ function drawWheel(){
   }
 
   // center hub + SPIN button
-  const hubR = R * 0.22;
-  const btnR = R * 0.15;
+  const hubR = R * 0.23;
+  const btnR = R * 0.155;
 
   ctx.save();
   ctx.translate(cx,cy);
@@ -503,16 +520,16 @@ function drawWheel(){
   ctx.arc(0,0,hubR,0,TAU);
   const hubGrad = ctx.createRadialGradient(-hubR*0.25,-hubR*0.35,hubR*0.12,0,0,hubR);
   hubGrad.addColorStop(0.00, "rgba(55,18,90,0.95)");
-  hubGrad.addColorStop(0.60, "rgba(10,12,30,0.92)");
-  hubGrad.addColorStop(1.00, "rgba(0,0,0,0.82)");
+  hubGrad.addColorStop(0.62, "rgba(10,12,30,0.94)");
+  hubGrad.addColorStop(1.00, "rgba(0,0,0,0.86)");
   ctx.fillStyle = hubGrad;
   ctx.fill();
 
   // hub ring glow
   ctx.lineWidth = Math.max(2, R*0.008);
-  ctx.shadowColor = "rgba(110,231,255,0.28)";
-  ctx.shadowBlur = Math.max(10, R*0.05);
-  ctx.strokeStyle = "rgba(110,231,255,0.16)";
+  ctx.shadowColor = "rgba(110,231,255,0.32)";
+  ctx.shadowBlur = Math.max(12, R*0.06);
+  ctx.strokeStyle = "rgba(110,231,255,0.18)";
   ctx.stroke();
 
   // button
@@ -520,14 +537,14 @@ function drawWheel(){
   ctx.beginPath();
   ctx.arc(0,0,btnR,0,TAU);
   const btnGrad = ctx.createLinearGradient(-btnR, -btnR, btnR, btnR);
-  btnGrad.addColorStop(0.00, "rgba(110,231,255,0.22)");
-  btnGrad.addColorStop(0.35, "rgba(186,99,255,0.28)");
-  btnGrad.addColorStop(0.72, "rgba(10,12,30,0.55)");
-  btnGrad.addColorStop(1.00, "rgba(0,0,0,0.68)");
+  btnGrad.addColorStop(0.00, "rgba(110,231,255,0.26)");
+  btnGrad.addColorStop(0.35, "rgba(186,99,255,0.30)");
+  btnGrad.addColorStop(0.72, "rgba(10,12,30,0.58)");
+  btnGrad.addColorStop(1.00, "rgba(0,0,0,0.72)");
   ctx.fillStyle = btnGrad;
-  ctx.shadowColor = "rgba(0,0,0,0.55)";
-  ctx.shadowBlur = Math.max(10, R*0.04);
-  ctx.shadowOffsetY = Math.max(2, R*0.010);
+  ctx.shadowColor = "rgba(0,0,0,0.60)";
+  ctx.shadowBlur = Math.max(12, R*0.05);
+  ctx.shadowOffsetY = Math.max(2, R*0.012);
   ctx.fill();
 
   // highlight
@@ -536,7 +553,7 @@ function drawWheel(){
   ctx.beginPath();
   ctx.arc(-btnR*0.22,-btnR*0.25,btnR*0.62,0,TAU);
   const hi = ctx.createRadialGradient(-btnR*0.25,-btnR*0.35,btnR*0.05,0,0,btnR);
-  hi.addColorStop(0.0, "rgba(255,255,255,0.20)");
+  hi.addColorStop(0.0, "rgba(255,255,255,0.22)");
   hi.addColorStop(0.4, "rgba(255,255,255,0.08)");
   hi.addColorStop(1.0, "rgba(255,255,255,0.00)");
   ctx.fillStyle = hi;
@@ -548,21 +565,21 @@ function drawWheel(){
   ctx.beginPath();
   ctx.arc(0,0,btnR,0,TAU);
   ctx.lineWidth = Math.max(2, R*0.006);
-  ctx.shadowColor = "rgba(186,99,255,0.45)";
-  ctx.shadowBlur = Math.max(12, R*0.06);
-  ctx.strokeStyle = "rgba(186,99,255,0.24)";
+  ctx.shadowColor = "rgba(186,99,255,0.55)";
+  ctx.shadowBlur = Math.max(14, R*0.07);
+  ctx.strokeStyle = "rgba(186,99,255,0.28)";
   ctx.stroke();
 
-  // SPIN label
-  const spinFont = Math.max(18, Math.floor(btnR * 0.56));
+  // SPIN label (bigger + clearer)
+  const spinFont = Math.max(18, Math.floor(btnR * 0.58));
   ctx.font = `900 ${spinFont}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.shadowColor = "rgba(110,231,255,0.22)";
-  ctx.shadowBlur = Math.max(8, R*0.03);
-  ctx.fillStyle = "rgba(245,245,255,0.95)";
-  ctx.strokeStyle = "rgba(10,12,30,0.72)";
-  ctx.lineWidth = Math.max(2, spinFont * 0.10);
+  ctx.shadowColor = "rgba(110,231,255,0.26)";
+  ctx.shadowBlur = Math.max(10, R*0.04);
+  ctx.fillStyle = "rgba(245,245,255,0.96)";
+  ctx.strokeStyle = "rgba(10,12,30,0.80)";
+  ctx.lineWidth = Math.max(2.6, spinFont * 0.12);
   ctx.strokeText("SPIN", 0, 0);
   ctx.fillText("SPIN", 0, 0);
 
@@ -593,7 +610,7 @@ function spin(user, amount){
 
   lastTip.textContent = `Tip ${amount} by ${user}`;
 
-  // choose a random target result
+  // random target
   const target = Math.floor(Math.random() * ITEMS.length);
   const n = ITEMS.length;
   const slice = TAU / n;
@@ -604,8 +621,8 @@ function spin(user, amount){
   // Want pointerAngle - finalAngle == targetCenter (mod 2π)
   const desired = pointerAngle - targetCenter;
 
-  // add rotations
-  const turns = (Math.random() * 3 + 5.5) * TAU;
+  // rotations
+  const turns = (Math.random() * 3 + 5.8) * TAU;
 
   // forward delta to desired
   const current = ((angle % TAU) + TAU) % TAU;
