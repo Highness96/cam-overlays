@@ -7,9 +7,8 @@
 
 <style>
 :root{
-  --panel-bg: rgba(10, 8, 20, 0.42);
-  --panel-border: rgba(180, 120, 255, 0.42);
-  --panel-edge: rgba(110, 231, 255, 0.22);
+  --panel-bg: rgba(10, 8, 20, 0.38);
+  --panel-border: rgba(180, 120, 255, 0.28);
 
   --deep-purple: rgba(52, 16, 82, 0.98);
   --neon-violet: rgba(186, 99, 255, 0.98);
@@ -17,12 +16,6 @@
   --midnight: rgba(10, 12, 30, 0.98);
 
   --text: rgba(245, 245, 255, 0.95);
-  --text-stroke: rgba(10, 12, 30, 0.72);
-  --glow-violet: rgba(186, 99, 255, 0.55);
-  --glow-cyan: rgba(110, 231, 255, 0.55);
-
-  --glass: rgba(255,255,255,0.08);
-  --glass2: rgba(255,255,255,0.03);
 }
 
 html, body{
@@ -34,7 +27,7 @@ html, body{
   color: var(--text);
 }
 
-/* OBS positioning (keep your original placement) */
+/* OBS positioning */
 #wrap{
   position:absolute;
   right:40px;
@@ -48,23 +41,24 @@ html, body{
   position:absolute;
   inset:0;
   border-radius:28px;
-  background: linear-gradient(180deg, rgba(10,8,20,0.30), rgba(10,8,20,0.18));
-  border: 1px solid rgba(180, 120, 255, 0.24);
+  background: linear-gradient(180deg, rgba(10,8,20,0.26), rgba(10,8,20,0.14));
+  border: 1px solid rgba(180, 120, 255, 0.22);
   box-shadow:
     0 18px 60px rgba(0,0,0,0.35),
-    0 0 60px rgba(186,99,255,0.16),
-    0 0 90px rgba(110,231,255,0.10);
+    0 0 70px rgba(186,99,255,0.12),
+    0 0 90px rgba(110,231,255,0.08);
   backdrop-filter: blur(10px);
 }
 
-/* subtle glossy sweep */
+/* glossy sheen */
 #panel::before{
   content:"";
   position:absolute;
   inset:10px;
   border-radius:22px;
-  background: radial-gradient(120% 70% at 20% 10%, rgba(255,255,255,0.10), rgba(255,255,255,0.00) 55%),
-              radial-gradient(120% 70% at 80% 0%, rgba(110,231,255,0.06), rgba(255,255,255,0.00) 60%);
+  background:
+    radial-gradient(120% 70% at 20% 10%, rgba(255,255,255,0.10), rgba(255,255,255,0.00) 55%),
+    radial-gradient(120% 70% at 80% 0%, rgba(110,231,255,0.06), rgba(255,255,255,0.00) 60%);
   pointer-events:none;
 }
 
@@ -73,7 +67,7 @@ html, body{
   position:absolute;
   inset:0;
   border-radius:28px;
-  border: 1px solid rgba(110,231,255,0.16);
+  border: 1px solid rgba(110,231,255,0.14);
   pointer-events:none;
 }
 
@@ -92,7 +86,7 @@ html, body{
   font-size:28px;
   font-weight:900;
   letter-spacing:0.6px;
-  text-shadow: 0 0 14px rgba(186,99,255,0.20);
+  text-shadow: 0 0 14px rgba(186,99,255,0.18);
 }
 
 #cost{
@@ -100,11 +94,11 @@ html, body{
   padding:10px 14px;
   border-radius:999px;
   background: rgba(10,12,30,0.42);
-  border:1px solid rgba(186,99,255,0.22);
-  box-shadow: 0 0 22px rgba(110,231,255,0.10);
+  border:1px solid rgba(186,99,255,0.20);
+  box-shadow: 0 0 22px rgba(110,231,255,0.08);
 }
 
-/* Clean glowing pointer (SVG for crisp 4K) */
+/* clean glowing pointer (SVG, crisp 4K) */
 #pointer{
   position:absolute;
   top:104px;
@@ -113,8 +107,8 @@ html, body{
   width:88px;
   height:88px;
   pointer-events:none;
-  filter: drop-shadow(0 0 14px rgba(110,231,255,0.35))
-          drop-shadow(0 0 22px rgba(186,99,255,0.25));
+  filter: drop-shadow(0 0 14px rgba(110,231,255,0.32))
+          drop-shadow(0 0 22px rgba(186,99,255,0.22));
 }
 
 #canvas{
@@ -126,20 +120,6 @@ html, body{
   height:780px;
 }
 
-/* Click target only if you enable click-to-spin */
-#spinHit{
-  position:absolute;
-  left:50%;
-  top:56%;
-  transform:translate(-50%, -50%);
-  width:260px;
-  height:260px;
-  border-radius:50%;
-  pointer-events:auto;
-  background: transparent;
-  display:none; /* turned on in JS if CLICK_TO_SPIN */
-}
-
 #result{
   position:absolute;
   left:24px;
@@ -149,7 +129,7 @@ html, body{
   font-size:20px;
   border-radius:18px;
   background: rgba(10,12,30,0.42);
-  border: 1px solid rgba(186,99,255,0.18);
+  border: 1px solid rgba(186,99,255,0.16);
   box-shadow:
     0 0 24px rgba(186,99,255,0.10),
     0 0 18px rgba(110,231,255,0.06);
@@ -159,13 +139,11 @@ html, body{
   pointer-events:none;
 }
 
-.flash{
-  animation: flash 0.9s ease-out;
-}
+.flash{ animation: flash 0.9s ease-out; }
 @keyframes flash{
   0%   { box-shadow: 0 18px 60px rgba(0,0,0,0.35), 0 0 0 rgba(0,0,0,0); }
-  30%  { box-shadow: 0 18px 60px rgba(0,0,0,0.35), 0 0 120px rgba(186,99,255,0.35), 0 0 140px rgba(110,231,255,0.20); }
-  100% { box-shadow: 0 18px 60px rgba(0,0,0,0.35), 0 0 60px rgba(186,99,255,0.16), 0 0 90px rgba(110,231,255,0.10); }
+  30%  { box-shadow: 0 18px 60px rgba(0,0,0,0.35), 0 0 120px rgba(186,99,255,0.30), 0 0 140px rgba(110,231,255,0.18); }
+  100% { box-shadow: 0 18px 60px rgba(0,0,0,0.35), 0 0 70px rgba(186,99,255,0.12), 0 0 90px rgba(110,231,255,0.08); }
 }
 </style>
 </head>
@@ -179,7 +157,7 @@ html, body{
     <div id="cost">Spin: <span id="spinCost">100</span> tokens</div>
   </div>
 
-  <!-- SVG pointer for crisp edges -->
+  <!-- SVG pointer -->
   <svg id="pointer" viewBox="0 0 100 100" aria-hidden="true">
     <defs>
       <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
@@ -202,7 +180,6 @@ html, body{
   </svg>
 
   <canvas id="canvas" width="780" height="780"></canvas>
-  <div id="spinHit" title="Click SPIN"></div>
 
   <div id="result">
     <div>Result: <b id="lastResult">—</b></div>
@@ -218,10 +195,6 @@ html, body{
 <script>
 /* ================= CONFIG ================= */
 const SPIN_COST = 100;
-
-// Optional: allow clicking the center SPIN button in OBS (requires OBS Browser Source "Interact")
-const CLICK_TO_SPIN = false;
-
 const ITEMS = [
   "Pull pants down",
   "Flash anything (5 sec)",
@@ -232,7 +205,6 @@ const ITEMS = [
   "Spin again",
   "VIP attention"
 ];
-
 document.getElementById("spinCost").textContent = SPIN_COST;
 
 /* ================= AUDIO ================= */
@@ -251,12 +223,12 @@ function playSound(a){
 /* ================= CANVAS (CRISP 1080p/4K) ================= */
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d", { alpha:true });
+const LOGICAL_SIZE = 780;
 
 function setupDPR(){
-  const rect = canvas.getBoundingClientRect();
   const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
-  canvas.width  = Math.round(rect.width  * dpr);
-  canvas.height = Math.round(rect.height * dpr);
+  canvas.width = Math.round(LOGICAL_SIZE * dpr);
+  canvas.height = Math.round(LOGICAL_SIZE * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 setupDPR();
@@ -266,57 +238,26 @@ window.addEventListener("resize", setupDPR);
 const panel = document.getElementById("panel");
 const lastResult = document.getElementById("lastResult");
 const lastTip = document.getElementById("lastTip");
-const spinHit = document.getElementById("spinHit");
-
-if (CLICK_TO_SPIN){
-  spinHit.style.display = "block";
-  // Your wrap has pointer-events:none; enable pointer events only on the hit area
-  document.getElementById("wrap").style.pointerEvents = "none";
-  spinHit.style.pointerEvents = "auto";
-}
 
 /* ================= WHEEL STATE ================= */
 let angle = 0;
 let spinning = false;
 
-// Premium spin curve (time-based, no jitter)
 let spinStart = 0;
 let spinFrom = 0;
 let spinTo = 0;
 const SPIN_DURATION = 5200;
 
-// Ease out quart
+const TAU = Math.PI * 2;
+function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
 function easeOutQuart(t){ return 1 - Math.pow(1 - t, 4); }
 
-/* ================= VISUAL HELPERS ================= */
-function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
-
-function sliceColors(i){
-  const palette = [
-    ["rgba(52,16,82,0.98)",  "rgba(186,99,255,0.98)"],
-    ["rgba(10,12,30,0.98)",  "rgba(110,231,255,0.98)"],
-    ["rgba(26,14,64,0.98)",  "rgba(186,99,255,0.98)"],
-    ["rgba(12,18,48,0.98)",  "rgba(110,231,255,0.98)"]
-  ];
-  return palette[i % palette.length];
-}
-
-function measureTextWidth(text, font){
-  ctx.save();
-  ctx.font = font;
-  const w = ctx.measureText(text).width;
-  ctx.restore();
-  return w;
-}
-
+/* ================= TEXT HELPERS ================= */
 function wrapTwoLines(text){
   const words = text.trim().split(/\s+/).filter(Boolean);
   if (words.length <= 1) return [text];
 
-  // pick best 2-line split with smallest max width
-  const baseFont = ctx.font;
   let best = null;
-
   for (let cut=1; cut<words.length; cut++){
     const a = words.slice(0,cut).join(" ");
     const b = words.slice(cut).join(" ");
@@ -325,23 +266,19 @@ function wrapTwoLines(text){
     const worst = Math.max(wa, wb);
     if (!best || worst < best.worst) best = { a, b, worst };
   }
-
-  ctx.font = baseFont;
   return best ? [best.a, best.b] : [text];
 }
 
+/* FIXED: readable curved text (no mirrored nonsense) */
 function drawTextOnArc(text, centerAngle, radius, maxArcPx, maxSizePx){
-  // Bold, modern, readable
-  const TAU = Math.PI * 2;
-
-  // Normalize angle to [0, 2π)
+  // normalize angle to [0..2π)
   let aNorm = centerAngle % TAU;
   if (aNorm < 0) aNorm += TAU;
 
-  // Bottom half of wheel in canvas coords: (0..π) is bottom (because +Y is down)
+  // canvas +Y is down => bottom half is (0..π)
   const isBottom = (aNorm > 0 && aNorm < Math.PI);
 
-  // Fit font size (1-line first)
+  // size fit
   let size = maxSizePx;
   const minSize = Math.max(12, Math.floor(maxSizePx * 0.62));
 
@@ -349,14 +286,11 @@ function drawTextOnArc(text, centerAngle, radius, maxArcPx, maxSizePx){
     ctx.font = `900 ${size}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial`;
     if (ctx.measureText(text).width <= maxArcPx) break;
   }
-
   ctx.font = `900 ${size}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial`;
 
-  // If still too wide, try two-line split
+  // lines
   let lines = [text];
-  if (ctx.measureText(text).width > maxArcPx){
-    lines = wrapTwoLines(text); // uses your existing helper
-  }
+  if (ctx.measureText(text).width > maxArcPx) lines = wrapTwoLines(text);
 
   const lineGap = Math.max(10, size * 0.90);
   const startRadius = lines.length === 2 ? (radius - lineGap * 0.40) : radius;
@@ -364,20 +298,15 @@ function drawTextOnArc(text, centerAngle, radius, maxArcPx, maxSizePx){
   lines.forEach((line, idx) => {
     const rLine = startRadius + idx * lineGap * 0.72;
 
-    // Build glyph widths
     let chars = [...line];
     let widths = chars.map(ch => ctx.measureText(ch).width);
 
-    // Total pixel width → arc span
     const totalPx = widths.reduce((a,b)=>a+b,0);
     const arcPx = Math.min(maxArcPx, totalPx);
     const span = arcPx / rLine;
-
-    // We draw centered on centerAngle
     const start = centerAngle - span/2;
 
-    // Flip logic:
-    // If bottom half: reverse characters and walk angles backwards so it reads left→right.
+    // if bottom, reverse characters and walk backwards so it reads left->right
     if (isBottom){
       chars = chars.reverse();
       widths = widths.reverse();
@@ -395,7 +324,6 @@ function drawTextOnArc(text, centerAngle, radius, maxArcPx, maxSizePx){
     ctx.lineWidth = Math.max(2, size * 0.10);
 
     if (!isBottom){
-      // Top half: move forward
       let ang = start;
       for (let i=0;i<chars.length;i++){
         const ch = chars[i];
@@ -405,7 +333,7 @@ function drawTextOnArc(text, centerAngle, radius, maxArcPx, maxSizePx){
         ctx.save();
         ctx.rotate(mid);
         ctx.translate(0, -rLine);
-        ctx.rotate(Math.PI/2);          // tangent, upright
+        ctx.rotate(Math.PI/2); // tangent, upright
         ctx.strokeText(ch, 0, 0);
         ctx.fillText(ch, 0, 0);
         ctx.restore();
@@ -413,7 +341,6 @@ function drawTextOnArc(text, centerAngle, radius, maxArcPx, maxSizePx){
         ang += chA;
       }
     } else {
-      // Bottom half: walk backward (and reverse chars) to keep readable
       let ang = start + span;
       for (let i=0;i<chars.length;i++){
         const ch = chars[i];
@@ -422,30 +349,50 @@ function drawTextOnArc(text, centerAngle, radius, maxArcPx, maxSizePx){
 
         ctx.save();
         ctx.rotate(mid);
-        ctx.tra
+        ctx.translate(0, -rLine);
+        ctx.rotate(-Math.PI/2); // tangent, upright
+        ctx.strokeText(ch, 0, 0);
+        ctx.fillText(ch, 0, 0);
+        ctx.restore();
 
-/* ================= DRAW (HIGH-END) ================= */
+        ang -= chA;
+      }
+    }
+
+    ctx.restore();
+  });
+}
+
+/* ================= COLORS ================= */
+function sliceColors(i){
+  const palette = [
+    ["rgba(52,16,82,0.98)",  "rgba(186,99,255,0.98)"],
+    ["rgba(10,12,30,0.98)",  "rgba(110,231,255,0.98)"],
+    ["rgba(26,14,64,0.98)",  "rgba(186,99,255,0.98)"],
+    ["rgba(12,18,48,0.98)",  "rgba(110,231,255,0.98)"]
+  ];
+  return palette[i % palette.length];
+}
+
+/* ================= DRAW (PREMIUM WHEEL) ================= */
 function drawWheel(){
-  const rect = canvas.getBoundingClientRect();
-  const W = rect.width;
-  const H = rect.height;
+  const S = LOGICAL_SIZE;
+  const cx = S/2, cy = S/2;
+  const R  = (S/2) * 0.93;
 
-  const cx = W/2, cy = H/2;
-  const R = Math.min(cx, cy) * 0.93;
+  ctx.clearRect(0,0,S,S);
 
-  ctx.clearRect(0,0,W,H);
-
-  // soft shadow under wheel (depth)
+  // soft shadow under wheel
   ctx.save();
   ctx.beginPath();
-  ctx.arc(cx, cy + R*0.06, R*0.98, 0, Math.PI*2);
+  ctx.arc(cx, cy + R*0.06, R*0.98, 0, TAU);
   ctx.fillStyle = "rgba(0,0,0,0.10)";
   ctx.filter = "blur(14px)";
   ctx.fill();
   ctx.restore();
 
   const n = ITEMS.length;
-  const slice = Math.PI*2 / n;
+  const slice = TAU / n;
 
   // slices
   for (let i=0;i<n;i++){
@@ -458,7 +405,6 @@ function drawWheel(){
     ctx.arc(cx,cy,R,a0,a1);
     ctx.closePath();
 
-    // smooth gradients (conic when available)
     let fill;
     if (typeof ctx.createConicGradient === "function"){
       const mid = (a0+a1)/2;
@@ -468,12 +414,13 @@ function drawWheel(){
       fill.addColorStop(0.40, "rgba(26,14,64,0.98)");
       fill.addColorStop(0.72, cB);
       fill.addColorStop(1.00, cA);
-    }else{
+    } else {
       const [cA, cB] = sliceColors(i);
       fill = ctx.createRadialGradient(cx,cy,R*0.10,cx,cy,R);
       fill.addColorStop(0, cB);
       fill.addColorStop(1, cA);
     }
+
     ctx.fillStyle = fill;
     ctx.fill();
 
@@ -488,7 +435,7 @@ function drawWheel(){
     ctx.fill();
     ctx.globalCompositeOperation = "source-over";
 
-    // vignette for depth
+    // vignette
     const vign = ctx.createRadialGradient(cx,cy,R*0.25,cx,cy,R);
     vign.addColorStop(0.0, "rgba(0,0,0,0.00)");
     vign.addColorStop(1.0, "rgba(0,0,0,0.22)");
@@ -498,7 +445,7 @@ function drawWheel(){
     ctx.restore();
   }
 
-  // glowing dividers (thin, premium)
+  // glowing dividers
   ctx.save();
   ctx.lineWidth = Math.max(1.2, R*0.006);
   ctx.strokeStyle = "rgba(120,245,255,0.22)";
@@ -514,16 +461,16 @@ function drawWheel(){
   }
   ctx.restore();
 
-  // outer rim (crisp edge + faint neon)
+  // outer rim
   ctx.save();
   ctx.beginPath();
-  ctx.arc(cx,cy,R,0,Math.PI*2);
+  ctx.arc(cx,cy,R,0,TAU);
   ctx.lineWidth = Math.max(2, R*0.020);
   ctx.strokeStyle = "rgba(10,12,30,0.55)";
   ctx.stroke();
 
   ctx.beginPath();
-  ctx.arc(cx,cy,R,0,Math.PI*2);
+  ctx.arc(cx,cy,R,0,TAU);
   ctx.lineWidth = Math.max(2, R*0.012);
   ctx.shadowColor = "rgba(186,99,255,0.55)";
   ctx.shadowBlur = Math.max(12, R*0.06);
@@ -531,7 +478,7 @@ function drawWheel(){
   ctx.stroke();
   ctx.restore();
 
-  // text: curved, centered, auto-size, never touching edges
+  // text (curved + readable)
   const textRadius = R * 0.72;
   const maxArcPx = (slice * textRadius) * 0.86;
   const maxSize = Math.floor(clamp(R*0.070, 16, 40));
@@ -544,7 +491,7 @@ function drawWheel(){
     ctx.restore();
   }
 
-  // center hub
+  // center hub + SPIN button
   const hubR = R * 0.22;
   const btnR = R * 0.15;
 
@@ -553,7 +500,7 @@ function drawWheel(){
 
   // hub base
   ctx.beginPath();
-  ctx.arc(0,0,hubR,0,Math.PI*2);
+  ctx.arc(0,0,hubR,0,TAU);
   const hubGrad = ctx.createRadialGradient(-hubR*0.25,-hubR*0.35,hubR*0.12,0,0,hubR);
   hubGrad.addColorStop(0.00, "rgba(55,18,90,0.95)");
   hubGrad.addColorStop(0.60, "rgba(10,12,30,0.92)");
@@ -568,10 +515,10 @@ function drawWheel(){
   ctx.strokeStyle = "rgba(110,231,255,0.16)";
   ctx.stroke();
 
-  // button (raised, metallic/glass)
+  // button
   ctx.shadowBlur = 0;
   ctx.beginPath();
-  ctx.arc(0,0,btnR,0,Math.PI*2);
+  ctx.arc(0,0,btnR,0,TAU);
   const btnGrad = ctx.createLinearGradient(-btnR, -btnR, btnR, btnR);
   btnGrad.addColorStop(0.00, "rgba(110,231,255,0.22)");
   btnGrad.addColorStop(0.35, "rgba(186,99,255,0.28)");
@@ -587,7 +534,7 @@ function drawWheel(){
   ctx.shadowBlur = 0;
   ctx.shadowOffsetY = 0;
   ctx.beginPath();
-  ctx.arc(-btnR*0.22,-btnR*0.25,btnR*0.62,0,Math.PI*2);
+  ctx.arc(-btnR*0.22,-btnR*0.25,btnR*0.62,0,TAU);
   const hi = ctx.createRadialGradient(-btnR*0.25,-btnR*0.35,btnR*0.05,0,0,btnR);
   hi.addColorStop(0.0, "rgba(255,255,255,0.20)");
   hi.addColorStop(0.4, "rgba(255,255,255,0.08)");
@@ -597,9 +544,9 @@ function drawWheel(){
   ctx.fill();
   ctx.globalCompositeOperation = "source-over";
 
-  // button neon edge
+  // button edge glow
   ctx.beginPath();
-  ctx.arc(0,0,btnR,0,Math.PI*2);
+  ctx.arc(0,0,btnR,0,TAU);
   ctx.lineWidth = Math.max(2, R*0.006);
   ctx.shadowColor = "rgba(186,99,255,0.45)";
   ctx.shadowBlur = Math.max(12, R*0.06);
@@ -619,24 +566,22 @@ function drawWheel(){
   ctx.strokeText("SPIN", 0, 0);
   ctx.fillText("SPIN", 0, 0);
 
-  ctx.restore(); // translate(cx,cy)
+  ctx.restore();
 }
 
 /* ================= WINNER / POINTER ================= */
-/* Pointer is at TOP. Determine slice under pointer for final result. */
 function getWinnerIndex(){
   const n = ITEMS.length;
-  const slice = Math.PI*2 / n;
+  const slice = TAU / n;
   const pointerAngle = -Math.PI/2;
 
-  // Map pointer into wheel space
-  let a = (pointerAngle - angle) % (Math.PI*2);
-  if (a < 0) a += Math.PI*2;
+  let a = (pointerAngle - angle) % TAU;
+  if (a < 0) a += TAU;
 
   return Math.floor(a / slice);
 }
 
-/* ================= SPIN (TIME-BASED PREMIUM) ================= */
+/* ================= SPIN (SMOOTH, READABLE) ================= */
 function spin(user, amount){
   if (spinning) return;
   spinning = true;
@@ -648,25 +593,25 @@ function spin(user, amount){
 
   lastTip.textContent = `Tip ${amount} by ${user}`;
 
-  // Choose a random target winner (uniform)
+  // choose a random target result
   const target = Math.floor(Math.random() * ITEMS.length);
-
   const n = ITEMS.length;
-  const slice = Math.PI*2 / n;
+  const slice = TAU / n;
+
   const pointerAngle = -Math.PI/2;
   const targetCenter = (target + 0.5) * slice;
 
-  // We want: pointerAngle - finalAngle == targetCenter (mod 2PI)
+  // Want pointerAngle - finalAngle == targetCenter (mod 2π)
   const desired = pointerAngle - targetCenter;
 
-  // Add multiple full rotations for drama (no jitter)
-  const turns = (Math.random() * 3 + 5.5) * (Math.PI*2);
+  // add rotations
+  const turns = (Math.random() * 3 + 5.5) * TAU;
 
-  // Make final angle approach desired going forward
-  const current = ((angle % (Math.PI*2)) + (Math.PI*2)) % (Math.PI*2);
-  const desiredNorm = ((desired % (Math.PI*2)) + (Math.PI*2)) % (Math.PI*2);
+  // forward delta to desired
+  const current = ((angle % TAU) + TAU) % TAU;
+  const desiredNorm = ((desired % TAU) + TAU) % TAU;
   let delta = desiredNorm - current;
-  if (delta < 0) delta += Math.PI*2;
+  if (delta < 0) delta += TAU;
 
   spinFrom = angle;
   spinTo = angle + turns + delta;
@@ -691,16 +636,15 @@ function spin(user, amount){
     drawWheel();
     requestAnimationFrame(frame);
   }
-
   requestAnimationFrame(frame);
 }
 
-/* ================= TIP HANDLING (UNCHANGED) ================= */
+/* ================= TIP HANDLING ================= */
 function handleTip(data){
   if(!data || data.type!=="tip") return;
   playSound(soundTip);
-  if(data.amount >= SPIN_COST){
-    spin(data.user||"anon", data.amount);
+  if (Number(data.amount) >= SPIN_COST){
+    spin(data.user || "anon", data.amount);
   }
 }
 
@@ -711,15 +655,8 @@ try{
   bc.onmessage = e => handleTip(e.data);
 }catch(e){}
 
-/* Click-to-spin (optional) */
-spinHit.addEventListener("click", (e) => {
-  if (!CLICK_TO_SPIN) return;
-  spin("click", SPIN_COST);
-});
-
 /* ================= START ================= */
 drawWheel();
 </script>
 </body>
 </html>
-
