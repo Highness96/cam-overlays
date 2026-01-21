@@ -2,153 +2,118 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Tip Wheel Overlay (High-End)</title>
+<title>Tip Wheel Overlay</title>
 
 <style>
 :root{
-  --panel-bg: rgba(10, 8, 20, 0.38);
-  --panel-border: rgba(180, 120, 255, 0.28);
-
-  --deep-purple: rgba(52, 16, 82, 0.98);
-  --neon-violet: rgba(186, 99, 255, 0.98);
-  --soft-cyan: rgba(110, 231, 255, 0.98);
-  --midnight: rgba(10, 12, 30, 0.98);
-
-  --text: rgba(245, 245, 255, 0.95);
+  --panel-bg: rgba(20, 0, 35, 0.65);
+  --panel-border: rgba(180, 120, 255, 0.8);
+  --glow: rgba(200, 140, 255, 1);
+  --text: #ffffff;
+  --accent1: #b86cff;
+  --accent2: #6ee7ff;
 }
 
-html, body{
-  margin:0;
-  padding:0;
-  background: transparent; /* OBS */
-  overflow:hidden;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", Helvetica, sans-serif;
+html, body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+  font-family: Arial, Helvetica, sans-serif;
   color: var(--text);
 }
 
-/* OBS positioning */
-#wrap{
-  position:absolute;
-  right:40px;
-  bottom:40px;
-  width:900px;
-  height:900px;
-  pointer-events:none;
+#wrap {
+  position: absolute;
+  right: 40px;
+  bottom: 40px;
+  width: 900px;
+  height: 900px;
+  pointer-events: none;
 }
 
-#panel{
-  position:absolute;
-  inset:0;
-  border-radius:28px;
-  background: linear-gradient(180deg, rgba(10,8,20,0.26), rgba(10,8,20,0.14));
-  border: 1px solid rgba(180, 120, 255, 0.22);
+#panel {
+  position: absolute;
+  inset: 0;
+  background: var(--panel-bg);
+  border-radius: 28px;
+  border: 3px solid var(--panel-border);
   box-shadow:
-    0 18px 60px rgba(0,0,0,0.35),
-    0 0 70px rgba(186,99,255,0.12),
-    0 0 90px rgba(110,231,255,0.08);
-  backdrop-filter: blur(10px);
+    0 0 40px rgba(180,120,255,0.35),
+    0 0 80px rgba(180,120,255,0.25);
 }
 
-/* glossy sheen */
-#panel::before{
-  content:"";
-  position:absolute;
-  inset:10px;
-  border-radius:22px;
-  background:
-    radial-gradient(120% 70% at 20% 10%, rgba(255,255,255,0.10), rgba(255,255,255,0.00) 55%),
-    radial-gradient(120% 70% at 80% 0%, rgba(110,231,255,0.06), rgba(255,255,255,0.00) 60%);
-  pointer-events:none;
+#header {
+  position: absolute;
+  top: 18px;
+  left: 24px;
+  right: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-#panel::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:28px;
-  border: 1px solid rgba(110,231,255,0.14);
-  pointer-events:none;
+#title {
+  font-size: 28px;
+  font-weight: 900;
 }
 
-#header{
-  position:absolute;
-  top:18px;
-  left:24px;
-  right:24px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  pointer-events:none;
+#cost {
+  font-size: 20px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.4);
 }
 
-#title{
-  font-size:28px;
-  font-weight:900;
-  letter-spacing:0.6px;
-  text-shadow: 0 0 14px rgba(186,99,255,0.18);
+#pointer {
+  position: absolute;
+  top: 115px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 28px solid transparent;
+  border-right: 28px solid transparent;
+  border-bottom: 44px solid var(--accent2);
+  filter: drop-shadow(0 0 15px rgba(110,231,255,0.9));
 }
 
-#cost{
-  font-size:18px;
-  padding:10px 14px;
-  border-radius:999px;
-  background: rgba(10,12,30,0.42);
-  border:1px solid rgba(186,99,255,0.20);
-  box-shadow: 0 0 22px rgba(110,231,255,0.08);
+#canvas {
+  position: absolute;
+  left: 50%;
+  top: 56%;
+  transform: translate(-50%, -50%);
+  width: 720px;
+  height: 720px;
 }
 
-/* clean glowing pointer (SVG, crisp 4K) */
-#pointer{
-  position:absolute;
-  top:92px;                 /* slightly higher for better alignment */
-  left:50%;
-  transform:translateX(-50%);
-  width:90px;
-  height:90px;
-  pointer-events:none;
-  filter: drop-shadow(0 0 16px rgba(110,231,255,0.40))
-          drop-shadow(0 0 26px rgba(186,99,255,0.28));
+#result {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: 24px;
+  padding: 18px 20px;
+  font-size: 22px;
+  border-radius: 18px;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: space-between;
 }
 
-#canvas{
-  position:absolute;
-  left:50%;
-  top:52%;                  /* moved up so result bar never competes */
-  transform:translate(-50%, -50%);
-  width:760px;              /* slightly smaller = more breathing room */
-  height:760px;
+.flash {
+  animation: flash 0.9s ease-out;
 }
 
-#result{
-  position:absolute;
-  left:24px;
-  right:24px;
-  bottom:24px;
-  padding:16px 18px;
-  font-size:20px;
-  border-radius:18px;
-  background: rgba(10,12,30,0.46);
-  border: 1px solid rgba(186,99,255,0.16);
-  box-shadow:
-    0 0 28px rgba(186,99,255,0.12),
-    0 0 20px rgba(110,231,255,0.08);
-  display:flex;
-  justify-content:space-between;
-  gap:16px;
-  pointer-events:none;
-}
-
-.flash{ animation: flash 0.9s ease-out; }
-@keyframes flash{
-  0%   { box-shadow: 0 18px 60px rgba(0,0,0,0.35), 0 0 0 rgba(0,0,0,0); }
-  30%  { box-shadow: 0 18px 60px rgba(0,0,0,0.35), 0 0 140px rgba(186,99,255,0.34), 0 0 170px rgba(110,231,255,0.22); }
-  100% { box-shadow: 0 18px 60px rgba(0,0,0,0.35), 0 0 70px rgba(186,99,255,0.12), 0 0 90px rgba(110,231,255,0.08); }
+@keyframes flash {
+  0%   { box-shadow: 0 0 0 rgba(0,0,0,0); }
+  30%  { box-shadow: 0 0 120px var(--glow); }
+  100% { box-shadow: 0 0 40px rgba(180,120,255,0.4); }
 }
 </style>
 </head>
 
 <body>
+
 <div id="wrap">
   <div id="panel"></div>
 
@@ -157,33 +122,12 @@ html, body{
     <div id="cost">Spin: <span id="spinCost">100</span> tokens</div>
   </div>
 
-  <!-- SVG pointer -->
-  <svg id="pointer" viewBox="0 0 100 100" aria-hidden="true">
-    <defs>
-      <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="rgba(110,231,255,0.98)"/>
-        <stop offset="1" stop-color="rgba(186,99,255,0.98)"/>
-      </linearGradient>
-    </defs>
-    <path d="M50 6
-             C58 18, 70 28, 92 36
-             C70 40, 58 54, 50 76
-             C42 54, 30 40, 8 36
-             C30 28, 42 18, 50 6Z"
-          fill="url(#pg)" opacity="0.98"/>
-    <path d="M50 14
-             C56 24, 66 30, 80 36
-             C66 39, 56 50, 50 66
-             C44 50, 34 39, 20 36
-             C34 30, 44 24, 50 14Z"
-          fill="rgba(10,12,30,0.30)"/>
-  </svg>
-
-  <canvas id="canvas" width="760" height="760"></canvas>
+  <div id="pointer"></div>
+  <canvas id="canvas" width="720" height="720"></canvas>
 
   <div id="result">
     <div>Result: <b id="lastResult">—</b></div>
-    <div id="lastTip" style="opacity:.75; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:420px;">waiting for tip…</div>
+    <div id="lastTip" style="opacity:.75;">waiting for tip…</div>
   </div>
 </div>
 
@@ -205,6 +149,7 @@ const ITEMS = [
   "Spin again",
   "VIP attention"
 ];
+
 document.getElementById("spinCost").textContent = SPIN_COST;
 
 /* ================= AUDIO ================= */
@@ -220,387 +165,85 @@ function playSound(a){
   }catch(e){}
 }
 
-/* ================= CANVAS (CRISP 1080p/4K) ================= */
+/* ================= WHEEL ================= */
 const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d", { alpha:true });
-
-const LOGICAL_SIZE = 760; // matches CSS size; internal DPR scaling makes it crisp
-function setupDPR(){
-  const dpr = Math.max(1, Math.min(3, window.devicePixelRatio || 1));
-  canvas.width  = Math.round(LOGICAL_SIZE * dpr);
-  canvas.height = Math.round(LOGICAL_SIZE * dpr);
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-}
-setupDPR();
-window.addEventListener("resize", setupDPR);
-
-/* ================= DOM ================= */
+const ctx = canvas.getContext("2d");
 const panel = document.getElementById("panel");
 const lastResult = document.getElementById("lastResult");
 const lastTip = document.getElementById("lastTip");
 
-/* ================= WHEEL STATE ================= */
 let angle = 0;
 let spinning = false;
+let angularVelocity = 0;
 
-let spinStart = 0;
-let spinFrom = 0;
-let spinTo = 0;
-const SPIN_DURATION = 5200;
+const FRICTION = 0.988;      // slower = longer spin
+const MIN_VELOCITY = 0.002; // stop threshold
 
-const TAU = Math.PI * 2;
-function clamp(v,a,b){ return Math.max(a, Math.min(b, v)); }
-function easeOutQuart(t){ return 1 - Math.pow(1 - t, 4); }
+function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+  const words = text.split(" ");
+  let line = "";
+  let offsetY = y;
 
-/* ================= TEXT HELPERS ================= */
-function wrapTwoLines(text){
-  const words = text.trim().split(/\s+/).filter(Boolean);
-  if (words.length <= 1) return [text];
-
-  let best = null;
-  for (let cut=1; cut<words.length; cut++){
-    const a = words.slice(0,cut).join(" ");
-    const b = words.slice(cut).join(" ");
-    const wa = ctx.measureText(a).width;
-    const wb = ctx.measureText(b).width;
-    const worst = Math.max(wa, wb);
-    if (!best || worst < best.worst) best = { a, b, worst };
+  for (let w of words) {
+    const test = line + w + " ";
+    if (ctx.measureText(test).width > maxWidth) {
+      ctx.fillText(line, x, offsetY);
+      line = w + " ";
+      offsetY += lineHeight;
+    } else line = test;
   }
-  return best ? [best.a, best.b] : [text];
+  ctx.fillText(line, x, offsetY);
 }
 
-/*
-  FIXED TEXT RENDERING:
-  - No mirrored/reversed nonsense
-  - Consistent tangent orientation
-  - Auto scales + adds safe padding
-  - Stronger outline/glow for camera readability
-*/
-function drawTextOnArc(text, centerAngle, radius, maxArcPx, maxSizePx){
-  // normalize to [0..2π)
-  let aNorm = centerAngle % TAU;
-  if (aNorm < 0) aNorm += TAU;
-
-  // "left half" flip rule (robust for canvas coords):
-  // If the slice midpoint is on the left side, flip the text so it isn't upside-down.
-  const flip = (aNorm > Math.PI/2 && aNorm < 3*Math.PI/2);
-
-  // fit size
-  let size = maxSizePx;
-  const minSize = Math.max(14, Math.floor(maxSizePx * 0.66));
-
-  for (; size >= minSize; size--){
-    ctx.font = `900 ${size}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial`;
-    if (ctx.measureText(text).width <= maxArcPx) break;
-  }
-  ctx.font = `900 ${size}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial`;
-
-  // lines if still long
-  let lines = [text];
-  if (ctx.measureText(text).width > maxArcPx) lines = wrapTwoLines(text);
-
-  const lineGap = Math.max(10, size * 0.92);
-  const startRadius = (lines.length === 2) ? (radius - lineGap * 0.42) : radius;
-
-  lines.forEach((line, li) => {
-    const rLine = startRadius + li * lineGap * 0.74;
-
-    let chars = [...line];
-    let widths = chars.map(ch => ctx.measureText(ch).width);
-
-    const totalPx = widths.reduce((a,b)=>a+b,0);
-    const arcPx = Math.min(maxArcPx, totalPx);
-    const span = arcPx / rLine;
-
-    // centered around centerAngle
-    const start = centerAngle - span/2;
-
-    // if flipped, render in reverse order and walk backward so it still reads left->right
-    if (flip){
-      chars = chars.reverse();
-      widths = widths.reverse();
-    }
-
-    ctx.save();
-    ctx.textBaseline = "middle";
-    ctx.textAlign = "center";
-
-    // stronger outline + clearer glow
-    ctx.shadowColor = "rgba(110,231,255,0.18)";
-    ctx.shadowBlur = Math.max(8, size * 0.55);
-    ctx.fillStyle = "rgba(245,245,255,0.96)";
-    ctx.strokeStyle = "rgba(10,12,30,0.78)";
-    ctx.lineWidth = Math.max(2.4, size * 0.12);
-
-    if (!flip){
-      let ang = start;
-      for (let i=0;i<chars.length;i++){
-        const ch = chars[i];
-        const chA = widths[i] / rLine;
-        const mid = ang + chA/2;
-
-        ctx.save();
-        ctx.rotate(mid);
-        ctx.translate(0, -rLine);
-        ctx.rotate(Math.PI/2); // tangent upright
-        ctx.strokeText(ch, 0, 0);
-        ctx.fillText(ch, 0, 0);
-        ctx.restore();
-
-        ang += chA;
-      }
-    } else {
-      let ang = start + span;
-      for (let i=0;i<chars.length;i++){
-        const ch = chars[i];
-        const chA = widths[i] / rLine;
-        const mid = ang - chA/2;
-
-        ctx.save();
-        ctx.rotate(mid);
-        ctx.translate(0, -rLine);
-        ctx.rotate(-Math.PI/2); // tangent upright (flipped side)
-        ctx.strokeText(ch, 0, 0);
-        ctx.fillText(ch, 0, 0);
-        ctx.restore();
-
-        ang -= chA;
-      }
-    }
-
-    ctx.restore();
-  });
-}
-
-/* ================= COLORS ================= */
-function sliceColors(i){
-  const palette = [
-    ["rgba(52,16,82,0.98)",  "rgba(186,99,255,0.98)"],
-    ["rgba(10,12,30,0.98)",  "rgba(110,231,255,0.98)"],
-    ["rgba(26,14,64,0.98)",  "rgba(186,99,255,0.98)"],
-    ["rgba(12,18,48,0.98)",  "rgba(110,231,255,0.98)"]
-  ];
-  return palette[i % palette.length];
-}
-
-/* ================= DRAW (PREMIUM WHEEL) ================= */
 function drawWheel(){
-  const S = LOGICAL_SIZE;
-  const cx = S/2, cy = S/2;
-  const R  = (S/2) * 0.94;
+  const cx = 360, cy = 360, r = 330;
+  const slice = Math.PI * 2 / ITEMS.length;
 
-  ctx.clearRect(0,0,S,S);
+  ctx.clearRect(0,0,720,720);
 
-  // soft shadow under wheel
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx, cy + R*0.06, R*0.98, 0, TAU);
-  ctx.fillStyle = "rgba(0,0,0,0.12)";
-  ctx.filter = "blur(14px)";
-  ctx.fill();
-  ctx.restore();
+  ITEMS.forEach((text,i)=>{
+    const start = angle + i * slice;
+    const end = start + slice;
 
-  const n = ITEMS.length;
-  const slice = TAU / n;
-
-  // slices
-  for (let i=0;i<n;i++){
-    const a0 = angle + i*slice;
-    const a1 = a0 + slice;
-
-    ctx.save();
     ctx.beginPath();
     ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,R,a0,a1);
-    ctx.closePath();
-
-    let fill;
-    if (typeof ctx.createConicGradient === "function"){
-      const mid = (a0+a1)/2;
-      fill = ctx.createConicGradient(mid, cx, cy);
-      const [cA, cB] = sliceColors(i);
-      fill.addColorStop(0.00, cA);
-      fill.addColorStop(0.42, "rgba(26,14,64,0.98)");
-      fill.addColorStop(0.74, cB);
-      fill.addColorStop(1.00, cA);
-    } else {
-      const [cA, cB] = sliceColors(i);
-      fill = ctx.createRadialGradient(cx,cy,R*0.10,cx,cy,R);
-      fill.addColorStop(0, cB);
-      fill.addColorStop(1, cA);
-    }
-
-    ctx.fillStyle = fill;
+    ctx.arc(cx,cy,r,start,end);
+    ctx.fillStyle = i%2 ? "rgba(110,231,255,.35)" : "rgba(184,108,255,.45)";
     ctx.fill();
-
-    // glass sheen
-    const sheen = ctx.createRadialGradient(cx - R*0.25, cy - R*0.35, R*0.12, cx, cy, R);
-    sheen.addColorStop(0.00, "rgba(255,255,255,0.18)");
-    sheen.addColorStop(0.26, "rgba(255,255,255,0.08)");
-    sheen.addColorStop(0.55, "rgba(255,255,255,0.00)");
-    sheen.addColorStop(1.00, "rgba(255,255,255,0.00)");
-    ctx.fillStyle = sheen;
-    ctx.globalCompositeOperation = "screen";
-    ctx.fill();
-    ctx.globalCompositeOperation = "source-over";
-
-    // vignette
-    const vign = ctx.createRadialGradient(cx,cy,R*0.25,cx,cy,R);
-    vign.addColorStop(0.0, "rgba(0,0,0,0.00)");
-    vign.addColorStop(1.0, "rgba(0,0,0,0.24)");
-    ctx.fillStyle = vign;
-    ctx.fill();
-
-    ctx.restore();
-  }
-
-  // glowing dividers (stronger so it matches your “premium” spec)
-  ctx.save();
-  ctx.lineWidth = Math.max(1.2, R*0.006);
-  ctx.strokeStyle = "rgba(120,245,255,0.30)";
-  ctx.shadowColor = "rgba(120,245,255,0.70)";
-  ctx.shadowBlur = Math.max(14, R*0.06);
-
-  for (let i=0;i<n;i++){
-    const a = angle + i*slice;
-    ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.lineTo(cx + Math.cos(a)*R, cy + Math.sin(a)*R);
+    ctx.strokeStyle="rgba(255,255,255,.35)";
     ctx.stroke();
-  }
-  ctx.restore();
 
-  // outer rim (more neon)
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(cx,cy,R,0,TAU);
-  ctx.lineWidth = Math.max(2, R*0.022);
-  ctx.strokeStyle = "rgba(10,12,30,0.60)";
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(cx,cy,R,0,TAU);
-  ctx.lineWidth = Math.max(2, R*0.013);
-  ctx.shadowColor = "rgba(186,99,255,0.72)";
-  ctx.shadowBlur = Math.max(16, R*0.075);
-  ctx.strokeStyle = "rgba(186,99,255,0.28)";
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(cx,cy,R,0,TAU);
-  ctx.lineWidth = Math.max(2, R*0.010);
-  ctx.shadowColor = "rgba(110,231,255,0.55)";
-  ctx.shadowBlur = Math.max(12, R*0.06);
-  ctx.strokeStyle = "rgba(110,231,255,0.16)";
-  ctx.stroke();
-  ctx.restore();
-
-  // text (pulled inward, more padding, more consistent)
-  const textRadius = R * 0.69;                 // inward = less edge-cramped
-  const maxArcPx   = (slice * textRadius) * 0.78; // padding so nothing kisses dividers
-  const maxSize    = Math.floor(clamp(R*0.082, 18, 46)); // bigger for OBS readability
-
-  for (let i=0;i<n;i++){
-    const mid = angle + (i+0.5)*slice;
     ctx.save();
     ctx.translate(cx,cy);
-    drawTextOnArc(ITEMS[i], mid, textRadius, maxArcPx, maxSize);
+    ctx.rotate(start + slice/2);
+    ctx.textAlign="right";
+    ctx.textBaseline="middle";
+    ctx.font="700 16px Arial";
+    ctx.fillStyle="#fff";
+    ctx.shadowBlur=8;
+    wrapText(ctx,text,r-36,0,150,18);
     ctx.restore();
-  }
+  });
 
-  // center hub + SPIN button
-  const hubR = R * 0.23;
-  const btnR = R * 0.155;
-
-  ctx.save();
-  ctx.translate(cx,cy);
-
-  // hub base
   ctx.beginPath();
-  ctx.arc(0,0,hubR,0,TAU);
-  const hubGrad = ctx.createRadialGradient(-hubR*0.25,-hubR*0.35,hubR*0.12,0,0,hubR);
-  hubGrad.addColorStop(0.00, "rgba(55,18,90,0.95)");
-  hubGrad.addColorStop(0.62, "rgba(10,12,30,0.94)");
-  hubGrad.addColorStop(1.00, "rgba(0,0,0,0.86)");
-  ctx.fillStyle = hubGrad;
+  ctx.arc(cx,cy,70,0,Math.PI*2);
+  ctx.fillStyle="rgba(0,0,0,.6)";
   ctx.fill();
-
-  // hub ring glow
-  ctx.lineWidth = Math.max(2, R*0.008);
-  ctx.shadowColor = "rgba(110,231,255,0.32)";
-  ctx.shadowBlur = Math.max(12, R*0.06);
-  ctx.strokeStyle = "rgba(110,231,255,0.18)";
+  ctx.strokeStyle="#fff";
   ctx.stroke();
 
-  // button
-  ctx.shadowBlur = 0;
-  ctx.beginPath();
-  ctx.arc(0,0,btnR,0,TAU);
-  const btnGrad = ctx.createLinearGradient(-btnR, -btnR, btnR, btnR);
-  btnGrad.addColorStop(0.00, "rgba(110,231,255,0.26)");
-  btnGrad.addColorStop(0.35, "rgba(186,99,255,0.30)");
-  btnGrad.addColorStop(0.72, "rgba(10,12,30,0.58)");
-  btnGrad.addColorStop(1.00, "rgba(0,0,0,0.72)");
-  ctx.fillStyle = btnGrad;
-  ctx.shadowColor = "rgba(0,0,0,0.60)";
-  ctx.shadowBlur = Math.max(12, R*0.05);
-  ctx.shadowOffsetY = Math.max(2, R*0.012);
-  ctx.fill();
-
-  // highlight
-  ctx.shadowBlur = 0;
-  ctx.shadowOffsetY = 0;
-  ctx.beginPath();
-  ctx.arc(-btnR*0.22,-btnR*0.25,btnR*0.62,0,TAU);
-  const hi = ctx.createRadialGradient(-btnR*0.25,-btnR*0.35,btnR*0.05,0,0,btnR);
-  hi.addColorStop(0.0, "rgba(255,255,255,0.22)");
-  hi.addColorStop(0.4, "rgba(255,255,255,0.08)");
-  hi.addColorStop(1.0, "rgba(255,255,255,0.00)");
-  ctx.fillStyle = hi;
-  ctx.globalCompositeOperation = "screen";
-  ctx.fill();
-  ctx.globalCompositeOperation = "source-over";
-
-  // button edge glow
-  ctx.beginPath();
-  ctx.arc(0,0,btnR,0,TAU);
-  ctx.lineWidth = Math.max(2, R*0.006);
-  ctx.shadowColor = "rgba(186,99,255,0.55)";
-  ctx.shadowBlur = Math.max(14, R*0.07);
-  ctx.strokeStyle = "rgba(186,99,255,0.28)";
-  ctx.stroke();
-
-  // SPIN label (bigger + clearer)
-  const spinFont = Math.max(18, Math.floor(btnR * 0.58));
-  ctx.font = `900 ${spinFont}px ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.shadowColor = "rgba(110,231,255,0.26)";
-  ctx.shadowBlur = Math.max(10, R*0.04);
-  ctx.fillStyle = "rgba(245,245,255,0.96)";
-  ctx.strokeStyle = "rgba(10,12,30,0.80)";
-  ctx.lineWidth = Math.max(2.6, spinFont * 0.12);
-  ctx.strokeText("SPIN", 0, 0);
-  ctx.fillText("SPIN", 0, 0);
-
-  ctx.restore();
+  ctx.fillStyle="#fff";
+  ctx.font="900 22px Arial";
+  ctx.textAlign="center";
+  ctx.textBaseline="middle";
+  ctx.fillText("SPIN",cx,cy);
 }
 
-/* ================= WINNER / POINTER ================= */
-function getWinnerIndex(){
-  const n = ITEMS.length;
-  const slice = TAU / n;
-  const pointerAngle = -Math.PI/2;
+drawWheel();
 
-  let a = (pointerAngle - angle) % TAU;
-  if (a < 0) a += TAU;
-
-  return Math.floor(a / slice);
-}
-
-/* ================= SPIN (SMOOTH, READABLE) ================= */
+/* ================= SPIN LOGIC ================= */
 function spin(user, amount){
-  if (spinning) return;
+  if(spinning) return;
   spinning = true;
 
   playSound(soundSpin);
@@ -610,48 +253,26 @@ function spin(user, amount){
 
   lastTip.textContent = `Tip ${amount} by ${user}`;
 
-  // random target
-  const target = Math.floor(Math.random() * ITEMS.length);
-  const n = ITEMS.length;
-  const slice = TAU / n;
+  angularVelocity =
+    (Math.random()*0.35 + 0.45) *
+    (Math.random()<0.5 ? -1 : 1);
 
-  const pointerAngle = -Math.PI/2;
-  const targetCenter = (target + 0.5) * slice;
-
-  // Want pointerAngle - finalAngle == targetCenter (mod 2π)
-  const desired = pointerAngle - targetCenter;
-
-  // rotations
-  const turns = (Math.random() * 3 + 5.8) * TAU;
-
-  // forward delta to desired
-  const current = ((angle % TAU) + TAU) % TAU;
-  const desiredNorm = ((desired % TAU) + TAU) % TAU;
-  let delta = desiredNorm - current;
-  if (delta < 0) delta += TAU;
-
-  spinFrom = angle;
-  spinTo = angle + turns + delta;
-  spinStart = performance.now();
-
-  function frame(now){
-    const t = (now - spinStart) / SPIN_DURATION;
-    if (t >= 1){
-      angle = spinTo;
-      drawWheel();
-
-      const idx = getWinnerIndex();
-      lastResult.textContent = ITEMS[idx];
-      playSound(soundWin);
-
-      spinning = false;
-      return;
-    }
-
-    const e = easeOutQuart(clamp(t, 0, 1));
-    angle = spinFrom + (spinTo - spinFrom) * e;
+  function frame(){
+    angle += angularVelocity;
+    angularVelocity *= FRICTION;
     drawWheel();
-    requestAnimationFrame(frame);
+
+    if(Math.abs(angularVelocity) > MIN_VELOCITY){
+      requestAnimationFrame(frame);
+    } else {
+      const slice = Math.PI*2 / ITEMS.length;
+      const index = Math.floor(
+        ((Math.PI*1.5 - angle + Math.PI*2)%(Math.PI*2)) / slice
+      );
+      lastResult.textContent = ITEMS[index];
+      playSound(soundWin);
+      spinning = false;
+    }
   }
   requestAnimationFrame(frame);
 }
@@ -660,8 +281,8 @@ function spin(user, amount){
 function handleTip(data){
   if(!data || data.type!=="tip") return;
   playSound(soundTip);
-  if (Number(data.amount) >= SPIN_COST){
-    spin(data.user || "anon", data.amount);
+  if(data.amount >= SPIN_COST){
+    spin(data.user||"anon", data.amount);
   }
 }
 
@@ -671,9 +292,7 @@ try{
   const bc = new BroadcastChannel("cb-overlays");
   bc.onmessage = e => handleTip(e.data);
 }catch(e){}
-
-/* ================= START ================= */
-drawWheel();
 </script>
+
 </body>
 </html>
