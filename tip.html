@@ -1,54 +1,103 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Tip Alerts</title>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-      color: #fff;
-      text-align: center;
-    }
-    #alertBox {
-      display: none;
-      position: absolute;
-      top: 20%;
-      width: 100%;
-      font-size: 48px;
-      animation: fadeInOut 4s ease forwards;
-    }
+<meta charset="UTF-8">
+<title>Tip Alert</title>
+<style>
+  body {
+    margin: 0; overflow: hidden;
+    font-family: 'Segoe UI', sans-serif;
+    display: flex; justify-content: center;
+  }
 
-    @keyframes fadeInOut {
-      0% { opacity: 0; transform: translateY(-20px); }
-      10% { opacity: 1; transform: translateY(0); }
-      80% { opacity: 1; }
-      100% { opacity: 0; transform: translateY(-20px); }
-    }
-  </style>
+  #alert-box {
+    display: none; /* Hidden by default */
+    margin-top: 50px;
+    background: linear-gradient(135deg, rgba(20,0,35,0.95), rgba(40,0,60,0.95));
+    border: 2px solid #b86cff;
+    border-radius: 12px;
+    padding: 15px 40px;
+    text-align: center;
+    color: white;
+    box-shadow: 0 0 30px rgba(184, 108, 255, 0.5);
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+
+  /* Trigger this class to animate */
+  .animate {
+    display: block !important;
+    animation: popIn 4s cubic-bezier(0.2, 1, 0.3, 1) forwards;
+  }
+
+  @keyframes popIn {
+    0% { transform: translateY(-100px); opacity: 0; }
+    10% { transform: translateY(0); opacity: 1; }
+    85% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-50px); opacity: 0; }
+  }
+
+  #user {
+    display: block;
+    font-size: 28px;
+    font-weight: bold;
+    color: #00d8ff;
+    text-shadow: 0 0 10px rgba(0,216,255,0.5);
+  }
+  
+  #msg {
+    display: block;
+    font-size: 20px;
+    margin-top: 5px;
+    color: #ddd;
+  }
+
+  #amount {
+    font-weight: 900;
+    color: #b86cff;
+  }
+</style>
 </head>
 <body>
 
-<div id="alertBox">
-  <span id="userName"></span> tipped <span id="amount"></span> tokens!
+<div id="alert-box">
+  <span id="user">Username</span>
+  <span id="msg">tipped <span id="amount">100</span> tokens!</span>
 </div>
 
 <script>
+  let queue = [];
+  let isPlaying = false;
+
   window.addEventListener("message", (event) => {
     const d = event.data;
-    if (d.type === "tip") {
-      document.getElementById("userName").textContent = d.user;
-      document.getElementById("amount").textContent = d.amount;
-      const box = document.getElementById("alertBox");
-      box.style.display = "block";
-
-      setTimeout(() => {
-        box.style.display = "none";
-      }, 4000);
+    if (d && d.type === "tip") {
+      queue.push(d);
+      processQueue();
     }
   });
-</script>
 
+  function processQueue() {
+    if (isPlaying || queue.length === 0) return;
+    
+    isPlaying = true;
+    const data = queue.shift();
+    
+    const box = document.getElementById("alert-box");
+    document.getElementById("user").textContent = data.user || "Anonymous";
+    document.getElementById("amount").textContent = data.amount;
+
+    // Reset animation
+    box.classList.remove("animate");
+    void box.offsetWidth;
+    box.classList.add("animate");
+
+    // Wait for animation to finish (4s) before playing next
+    setTimeout(() => {
+      isPlaying = false;
+      processQueue();
+    }, 4000);
+  }
+</script>
 </body>
 </html>
