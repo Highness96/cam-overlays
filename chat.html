@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Chat Overlay</title>
@@ -7,32 +7,73 @@
     body {
       margin: 0;
       overflow: hidden;
-      font-family: Arial, sans-serif;
-      color: #fff;
-      font-size: 24px;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 18px;
     }
+
     #chatBox {
       position: absolute;
-      bottom: 10px;
-      left: 10px;
-      width: 400px;
-      max-height: 500px;
-      overflow-y: auto;
+      bottom: 20px;
+      left: 20px;
+      width: 350px;
+      height: 400px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column-reverse; /* New messages at bottom */
+      gap: 8px;
+    }
+
+    .message {
+      background: rgba(0, 0, 0, 0.65);
+      padding: 8px 12px;
+      border-radius: 8px;
+      color: white;
+      text-shadow: 1px 1px 2px black;
+      animation: fadeIn 0.3s ease-out;
+      border-left: 3px solid #b86cff; /* Purple Accent */
+      word-wrap: break-word;
+    }
+
+    .username {
+      font-weight: bold;
+      color: #00d8ff; /* Cyan Name */
+      margin-right: 5px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
     }
   </style>
 </head>
 <body>
   <div id="chatBox"></div>
+
   <script>
+    const MAX_MESSAGES = 15;
+
     window.addEventListener("message", (event) => {
       const d = event.data;
-      if (d.type === "chat") {
-        const chatBox = document.getElementById("chatBox");
-        const line = document.createElement("div");
-        line.textContent = d.user + ": " + d.message;
-        chatBox.prepend(line);
+      if (d && d.type === "chat") {
+        addMessage(d.user, d.message);
       }
     });
+
+    function addMessage(user, text) {
+      const box = document.getElementById("chatBox");
+      const div = document.createElement("div");
+      div.className = "message";
+      
+      div.innerHTML = `<span class="username">${user}:</span> ${text}`;
+      
+      // Insert at the beginning (bottom of container due to column-reverse)
+      box.prepend(div);
+
+      // Remove old messages
+      if (box.children.length > MAX_MESSAGES) {
+        box.lastElementChild.remove();
+      }
+    }
   </script>
 </body>
 </html>
