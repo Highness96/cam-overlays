@@ -1,86 +1,95 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Tip Menu</title>
-
+<title>Neon Tip Menu</title>
 <style>
-body{
-  margin:0;
-  background:transparent;
-  font-family:Arial, sans-serif;
-}
+  :root {
+    --bg-color: rgba(10, 5, 20, 0.85);
+    --accent: #b86cff;
+    --highlight: #00d8ff;
+    --text: #ffffff;
+  }
+  
+  body { 
+    margin: 0; padding: 0; 
+    font-family: 'Segoe UI', sans-serif; 
+    background: transparent;
+  }
 
-/* BIG MENU BOX */
-#menu{
-  position:absolute;
-  top:20px;
-  right:20px;
+  #menu {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 450px;
+    background: var(--bg-color);
+    border: 2px solid var(--accent);
+    border-radius: 15px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+  }
 
-  width:480px;               /* MUCH WIDER */
-  background:rgba(0,0,0,0.75);
-  border:3px solid rgba(255,255,255,0.6);
-  border-radius:16px;
-  padding:18px;
+  #title {
+    background: var(--accent);
+    color: #fff;
+    padding: 12px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
 
-  box-shadow:0 0 25px rgba(0,0,0,0.9);
-}
+  ul {
+    list-style: none;
+    padding: 10px 20px 20px 20px;
+    margin: 0;
+  }
 
-/* TITLE */
-#title{
-  font-size:30px;            /* MUCH LARGER */
-  font-weight:900;
-  color:#ffffff;
-  text-align:center;
-  margin-bottom:14px;
-  text-shadow:0 0 10px rgba(0,0,0,0.9);
-}
+  li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+  }
+  li:last-child { border-bottom: none; }
 
-/* LIST */
-ul{
-  margin:0;
-  padding:0;
-  list-style:none;
-}
+  .price-tag {
+    background: rgba(0, 216, 255, 0.15);
+    color: var(--highlight);
+    border: 1px solid var(--highlight);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 800;
+    font-size: 18px;
+    min-width: 80px;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0,216,255,0.2);
+  }
 
-li{
-  display:flex;
-  justify-content:space-between;
-  gap:16px;
-  padding:10px 0;
-  border-bottom:1px solid rgba(255,255,255,0.25);
-  color:#ffffff;
-  font-size:22px;            /* MUCH LARGER */
-  font-weight:700;
-  text-shadow:0 0 6px rgba(0,0,0,0.85);
-}
+  .action-text {
+    color: var(--text);
+    font-size: 18px;
+    font-weight: 600;
+    text-align: right;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+    flex: 1;
+    margin-left: 15px;
+  }
 
-li:last-child{border:none}
-
-.price{
-  font-weight:900;
-  white-space:nowrap;
-  min-width:140px;
-}
-
-.action{
-  flex:1;
-  word-break:break-word;
-}
-
-/* FLASH MENU ON TIP */
-.glow{
-  animation:pulse 1s ease-out;
-}
-@keyframes pulse{
-  0%{box-shadow:0 0 0 transparent}
-  50%{box-shadow:0 0 30px rgba(255,255,255,0.9)}
-  100%{box-shadow:0 0 0 transparent}
-}
+  /* Animation when tipped */
+  .flash { animation: highlight 0.5s ease-out; }
+  @keyframes highlight {
+    0% { border-color: #fff; box-shadow: 0 0 50px #fff; }
+    100% { border-color: var(--accent); box-shadow: 0 0 30px rgba(0,0,0,0.8); }
+  }
 </style>
 </head>
-
 <body>
+
 <div id="menu">
   <div id="title">Tip Menu</div>
   <ul id="list"></ul>
@@ -88,33 +97,34 @@ li:last-child{border:none}
 
 <script>
 const MENU_ITEMS = [
-  {tokens:100, text:"Take shirt off (2 minutes)"},
+  {tokens:100, text:"Take shirt off (2 min)"},
   {tokens:1000, text:"Show cock"},
-  {tokens:2000, text:"Get naked for 5 minutes"},
-  {tokens:5000, text:"Dance with no clothes on (2 minutes)"},
+  {tokens:2000, text:"Get naked (5 min)"},
+  {tokens:5000, text:"Naked Dance (2 min)"},
   {tokens:10000, text:"Nut on camera"}
 ];
 
 const list = document.getElementById("list");
-MENU_ITEMS.sort((a,b)=>a.tokens-b.tokens).forEach(i=>{
-  const li=document.createElement("li");
+
+// Sort by price and create list
+MENU_ITEMS.sort((a,b) => a.tokens - b.tokens).forEach(item => {
+  const li = document.createElement("li");
   li.innerHTML = `
-    <div class="price">${i.tokens} tokens</div>
-    <div class="action">${i.text}</div>
+    <div class="price-tag">${item.tokens}</div>
+    <div class="action-text">${item.text}</div>
   `;
   list.appendChild(li);
 });
 
-/* Optional glow on tip */
-window.addEventListener("message", e=>{
-  if(e.data?.type !== "tip") return;
-  const menu=document.getElementById("menu");
-  menu.classList.remove("glow");
-  void menu.offsetWidth;
-  menu.classList.add("glow");
+// Flash effect on tip
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "tip") {
+    const menu = document.getElementById("menu");
+    menu.classList.remove("flash");
+    void menu.offsetWidth;
+    menu.classList.add("flash");
+  }
 });
 </script>
 </body>
 </html>
-
-
