@@ -130,7 +130,7 @@ html, body {
 
   <div id="header">
     <div id="title">TIP WHEEL</div>
-    <div id="cost">Spin: <span id="spinCost">100</span> tokens</div>
+    <div id="cost">Spin: <span id="spinCost">45</span> tokens</div>
   </div>
 
   <div id="pointer"></div>
@@ -148,18 +148,18 @@ html, body {
 
 <script>
 /* ================= CONFIG ================= */
-const SPIN_COST = 100;
+// CHANGE: Cost is now 45
+const SPIN_COST = 45;
 
-// PASTE YOUR ORIGINAL LIST HERE
 const ITEMS = [
-  "Prize 1",
-  "Prize 2",
-  "Prize 3",
-  "Prize 4",
-  "Prize 5",
-  "Prize 6",
-  "Prize 7",
-  "Prize 8"
+  "Pull pants down",
+  "Flash anything (5 sec)",
+  "Show feet",
+  "I choose",
+  "Grab my package",
+  "Chat chooses",
+  "Spin again",
+  "VIP attention"
 ];
 
 document.getElementById("spinCost").textContent = SPIN_COST;
@@ -187,13 +187,13 @@ const resultText = document.getElementById("lastResult");
 const resultTitle = document.getElementById("resultTitle");
 
 // Physics State
-let angle = 0;             // Current rotation angle
-let angularVelocity = 0;   // Speed of rotation
+let angle = 0;             
+let angularVelocity = 0;   
 let isSpinning = false;
-let lastTickIndex = -1;    // Used to track "ticks" for sound
+let lastTickIndex = -1;    
 
 // PHYSICS SETTINGS
-const FRICTION = 0.991;    // Closer to 1 = slippery/long spin. 0.991 is heavy.
+const FRICTION = 0.991;    
 const STOP_THRESHOLD = 0.0015; 
 
 function drawWheel() {
@@ -263,17 +263,15 @@ function drawWheel() {
 /* ================= LOGIC ================= */
 
 function spin(user, amount) {
-  if (isSpinning) return; // Ignore spins if already moving
+  if (isSpinning) return; 
   
   isSpinning = true;
   resultTitle.textContent = `${user} tipped ${amount}!`;
   resultText.textContent = "Spinning...";
   
   playSound("tip");
-  panel.classList.add("flash"); // glowing border effect
+  panel.classList.add("flash"); 
 
-  // Randomize initial velocity (speed)
-  // 0.3 to 0.5 is a good range for this friction
   angularVelocity = (Math.random() * 0.2 + 0.35); 
   
   loop();
@@ -284,29 +282,23 @@ function loop() {
 
   // Update physics
   angle += angularVelocity;
-  angularVelocity *= FRICTION; // Decay speed
+  angularVelocity *= FRICTION; 
 
   // Ticker Logic (Sound when passing lines)
-  // The pointer is at 270 degrees (3PI/2) or top.
-  // We calculate which index is currently at the top.
   const numSegments = ITEMS.length;
   const slice = (Math.PI * 2) / numSegments;
   
-  // Calculate raw index
   const rawIndex = Math.floor(((Math.PI * 1.5 - angle) / slice));
   
   if (rawIndex !== lastTickIndex) {
-    // Only play sound if moving fast enough, otherwise it sounds weird at the very end
     if(angularVelocity > 0.005) {
        playSound("spin");
     }
     lastTickIndex = rawIndex;
   }
 
-  // Draw
   drawWheel();
 
-  // Check Stop Condition
   if (angularVelocity < STOP_THRESHOLD) {
     finishSpin();
   } else {
@@ -321,10 +313,7 @@ function finishSpin() {
   const numSegments = ITEMS.length;
   const slice = (Math.PI * 2) / numSegments;
   
-  // Math to find the slice at the top (Pointer position)
-  // Add 2PI to handle negative angles, perform modulo
   const normalizeAngle = (angle % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
-  // Pointer is at 270 deg (1.5 PI). We subtract the current angle from that to find the offset.
   const pointerAngle = (Math.PI * 1.5 - normalizeAngle + (Math.PI * 2)) % (Math.PI * 2);
   
   const index = Math.floor(pointerAngle / slice);
@@ -335,7 +324,6 @@ function finishSpin() {
 }
 
 /* ================= MESSAGE LISTENER ================= */
-// This waits for the "tip" signal from your browser source or bot
 window.addEventListener("message", (event) => {
   const data = event.data;
   if (data && data.type === "tip") {
@@ -346,7 +334,6 @@ window.addEventListener("message", (event) => {
   }
 });
 
-// Broadcast Channel support (alternative method)
 try {
   const bc = new BroadcastChannel("cb-overlays");
   bc.onmessage = (e) => {
@@ -357,7 +344,6 @@ try {
   };
 } catch (e) {}
 
-// Initial Draw
 drawWheel();
 </script>
 
