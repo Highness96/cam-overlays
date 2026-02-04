@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8" />
 <title>Smart Tip Wheel</title>
-
 <style>
 :root{
   --panel-bg: rgba(20, 0, 35, 0.85);
@@ -13,107 +12,49 @@
   --accent1: #b86cff;
   --accent2: #6ee7ff;
 }
-
 html, body {
-  margin: 0;
-  padding: 0;
-  background: transparent;
-  overflow: hidden;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: var(--text);
+  margin: 0; padding: 0; background: transparent; overflow: hidden;
+  font-family: 'Segoe UI', sans-serif; color: var(--text);
 }
-
 #wrap {
-  position: absolute;
-  right: 40px;
-  bottom: 40px;
-  width: 900px;
-  height: 900px;
+  position: absolute; right: 40px; bottom: 40px; width: 900px; height: 900px;
   pointer-events: none;
 }
-
 #panel {
-  position: absolute;
-  inset: 0;
-  background: var(--panel-bg);
-  border-radius: 40px;
-  border: 4px solid var(--panel-border);
-  box-shadow:
-    0 0 40px rgba(180,120,255,0.35),
-    inset 0 0 60px rgba(0,0,0,0.8);
+  position: absolute; inset: 0; background: var(--panel-bg);
+  border-radius: 40px; border: 4px solid var(--panel-border);
+  box-shadow: 0 0 40px rgba(180,120,255,0.35), inset 0 0 60px rgba(0,0,0,0.8);
   transition: box-shadow 0.2s;
 }
-
 #header {
-  position: absolute;
-  top: 25px;
-  left: 30px;
-  right: 30px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  z-index: 10;
+  position: absolute; top: 25px; left: 30px; right: 30px;
+  display: flex; justify-content: space-between; align-items: center; z-index: 10;
 }
-
 #title {
-  font-size: 36px;
-  font-weight: 900;
-  text-shadow: 0 0 10px rgba(184,108,255,0.8);
-  letter-spacing: 1px;
+  font-size: 36px; font-weight: 900; text-shadow: 0 0 10px rgba(184,108,255,0.8);
 }
-
 #cost {
-  font-size: 24px;
-  font-weight: 700;
-  padding: 10px 20px;
-  border-radius: 999px;
+  font-size: 24px; font-weight: 700; padding: 10px 20px; border-radius: 999px;
   background: linear-gradient(90deg, #5b2485, #b86cff);
   box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
-
-/* The Needle */
 #pointer {
-  position: absolute;
-  top: 110px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 30px solid transparent;
-  border-right: 30px solid transparent;
-  border-bottom: 50px solid #fff;
-  filter: drop-shadow(0 0 10px var(--accent2));
-  z-index: 20;
+  position: absolute; top: 110px; left: 50%; transform: translateX(-50%);
+  width: 0; height: 0; border-left: 30px solid transparent;
+  border-right: 30px solid transparent; border-bottom: 50px solid #fff;
+  filter: drop-shadow(0 0 10px var(--accent2)); z-index: 20;
 }
-
 #canvas {
-  position: absolute;
-  left: 50%;
-  top: 56%;
-  transform: translate(-50%, -50%);
-  width: 720px;
-  height: 720px;
-  filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
+  position: absolute; left: 50%; top: 56%; transform: translate(-50%, -50%);
+  width: 720px; height: 720px; filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
 }
-
 #result {
-  position: absolute;
-  left: 40px;
-  right: 40px;
-  bottom: 40px;
-  padding: 20px;
-  text-align: center;
-  background: rgba(0,0,0,0.6);
-  border-radius: 20px;
-  border: 1px solid rgba(255,255,255,0.1);
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
+  position: absolute; left: 40px; right: 40px; bottom: 40px; padding: 20px;
+  text-align: center; background: rgba(0,0,0,0.6); border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; gap: 5px;
 }
-
 #resultTitle { font-size: 18px; opacity: 0.7; }
 #lastResult { font-size: 32px; font-weight: 800; color: var(--accent2); text-shadow: 0 0 15px var(--accent2); }
-
 .flash { animation: pulseBorder 0.5s infinite alternate; }
 @keyframes pulseBorder {
   from { border-color: var(--panel-border); box-shadow: 0 0 40px var(--accent1); }
@@ -121,243 +62,148 @@ html, body {
 }
 </style>
 </head>
-
 <body>
-
 <div id="wrap">
   <div id="panel"></div>
-
   <div id="header">
     <div id="title">TIP WHEEL</div>
     <div id="cost">Spin: <span id="spinCost">45</span> tokens</div>
   </div>
-
   <div id="pointer"></div>
   <canvas id="canvas" width="720" height="720"></canvas>
-
   <div id="result">
     <div id="resultTitle">Waiting for spin...</div>
     <div id="lastResult">—</div>
   </div>
 </div>
-
 <audio id="soundTip"  src="audio/tip.wav" preload="auto"></audio>
 <audio id="soundSpin" src="audio/spin.wav" preload="auto"></audio>
 <audio id="soundWin"  src="audio/win.wav" preload="auto"></audio>
-
 <script>
-/* ================= CONFIG ================= */
+/* CONFIG */
 const SPIN_COST = 45;
-
-// !!! IMPORTANT: EDIT THIS LIST WITH YOUR ITEMS !!!
 const ITEMS = [
-  "Pull pants down",
-  "Flash anything (5 sec)",
-  "Show feet",
-  "I choose",
-  "Grab my package",
-  "Chat chooses",
-  "Spin again",
-  "VIP attention"
+  "Pull pants down", "Flash anything (5 sec)", "Show feet", "I choose",
+  "Grab my package", "Chat chooses", "Spin again", "VIP attention"
 ];
-
 document.getElementById("spinCost").textContent = SPIN_COST;
-
-/* ================= AUDIO ================= */
+/* AUDIO */
 const audioCtx = {
   tip: document.getElementById("soundTip"),
   spin: document.getElementById("soundSpin"),
   win: document.getElementById("soundWin")
 };
-
 function playSound(key) {
   const s = audioCtx[key];
-  if(s){
-    s.currentTime = 0;
-    s.play().catch(()=>{});
-  }
+  if(s){ s.currentTime = 0; s.play().catch(()=>{}); }
 }
-
-/* ================= DRAWING ================= */
+/* DRAW */
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const panel = document.getElementById("panel");
 const resultText = document.getElementById("lastResult");
 const resultTitle = document.getElementById("resultTitle");
-
-let angle = 0;
-let angularVelocity = 0;
-let isSpinning = false;
-let lastTickIndex = -1;
-
-// PHYSICS: 0.992 is smoother and hangs longer at the end
-const FRICTION = 0.992;
+let angle = 0, angularVelocity = 0, isSpinning = false, lastTickIndex = -1;
+const FRICTION = 0.992; 
 const STOP_THRESHOLD = 0.0010;
 
 function drawWheel() {
   const cx = 360, cy = 360, r = 330;
   const numSegments = ITEMS.length;
   const slice = (Math.PI * 2) / numSegments;
-
   ctx.clearRect(0, 0, 720, 720);
 
   ITEMS.forEach((text, i) => {
     const startAngle = angle + i * slice;
     const endAngle = startAngle + slice;
-
-    // 1. Draw Slice
     ctx.beginPath();
     ctx.moveTo(cx, cy);
     ctx.arc(cx, cy, r, startAngle, endAngle);
-    
-    // Gradient colors
     const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
     if (i % 2 === 0) {
-      grad.addColorStop(0, "rgba(91, 36, 133, 0.8)"); // Dark purple
-      grad.addColorStop(1, "rgba(184, 108, 255, 0.6)"); // Light purple
+      grad.addColorStop(0, "rgba(91, 36, 133, 0.8)");
+      grad.addColorStop(1, "rgba(184, 108, 255, 0.6)");
     } else {
-      grad.addColorStop(0, "rgba(40, 40, 60, 0.8)");   // Dark
-      grad.addColorStop(1, "rgba(110, 231, 255, 0.5)"); // Cyan
+      grad.addColorStop(0, "rgba(40, 40, 60, 0.8)");
+      grad.addColorStop(1, "rgba(110, 231, 255, 0.5)");
     }
+    ctx.fillStyle = grad; ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.2)"; ctx.lineWidth = 2; ctx.stroke();
     
-    ctx.fillStyle = grad;
-    ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,0.2)";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
-    // 2. Draw Text (Smart Flip Logic)
-    ctx.save();
-    ctx.translate(cx, cy);
-    
-    // Calculate the precise angle of this wedge's center
-    const theta = startAngle + slice / 2;
-    ctx.rotate(theta);
-
-    // Normalize angle to 0 - 2PI to check position
+    // Smart Text Flip
+    ctx.save(); ctx.translate(cx, cy);
+    const theta = startAngle + slice / 2; ctx.rotate(theta);
     const normTheta = (theta % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
-
-    // If wedge is on the LEFT side (between 90deg and 270deg), flip text
-    // 90deg = PI/2, 270deg = 3PI/2
     if (normTheta > Math.PI / 2 && normTheta < 3 * Math.PI / 2) {
-      // Flip 180 degrees
-      ctx.rotate(Math.PI);
-      // Align left (draw from rim inwards towards center)
-      ctx.textAlign = "left";
-      ctx.fillStyle = "#fff";
-      ctx.font = "bold 20px Arial";
-      ctx.shadowColor = "rgba(0,0,0,0.8)";
-      ctx.shadowBlur = 4;
-      // Negative X because we rotated 180
+      ctx.rotate(Math.PI); ctx.textAlign = "left";
+      ctx.fillStyle = "#fff"; ctx.font = "bold 20px Arial";
+      ctx.shadowColor = "rgba(0,0,0,0.8)"; ctx.shadowBlur = 4;
       ctx.fillText(text, -(r - 40), 0);
     } else {
-      // Standard right side (no flip)
-      ctx.textAlign = "right";
-      ctx.fillStyle = "#fff";
-      ctx.font = "bold 20px Arial";
-      ctx.shadowColor = "rgba(0,0,0,0.8)";
-      ctx.shadowBlur = 4;
-      ctx.fillText(text, r - 40, 0);
+      ctx.textAlign = "right"; ctx.fillStyle = "#fff";
+      ctx.font = "bold 20px Arial"; ctx.shadowColor = "rgba(0,0,0,0.8)";
+      ctx.shadowBlur = 4; ctx.fillText(text, r - 40, 0);
     }
-
     ctx.restore();
   });
-
-  // Center Cap
-  ctx.beginPath();
-  ctx.arc(cx, cy, 50, 0, Math.PI * 2);
-  ctx.fillStyle = "#1a0b2e";
-  ctx.fill();
-  ctx.strokeStyle = "#b86cff";
-  ctx.lineWidth = 4;
-  ctx.stroke();
-
-  ctx.fillStyle = "#fff";
-  ctx.font = "bold 18px Arial";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText("VIP", cx, cy);
+  // Cap
+  ctx.beginPath(); ctx.arc(cx, cy, 50, 0, Math.PI * 2);
+  ctx.fillStyle = "#1a0b2e"; ctx.fill();
+  ctx.strokeStyle = "#b86cff"; ctx.lineWidth = 4; ctx.stroke();
+  ctx.fillStyle = "#fff"; ctx.font = "bold 18px Arial";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("VIP", cx, cy);
 }
 
-/* ================= LOGIC ================= */
 function spin(user, amount) {
   if (isSpinning) return;
-  
   isSpinning = true;
   resultTitle.textContent = `${user} tipped ${amount}!`;
   resultText.textContent = "Spinning...";
-  playSound("tip");
-  panel.classList.add("flash"); 
-
-  // Random speed between 0.35 and 0.55
-  angularVelocity = (Math.random() * 0.2 + 0.35); 
+  playSound("tip"); panel.classList.add("flash");
+  angularVelocity = (Math.random() * 0.2 + 0.35);
   loop();
 }
 
 function loop() {
   if (!isSpinning) return;
-
-  angle += angularVelocity;
-  angularVelocity *= FRICTION; // Slow down
-
-  // Ticker Sound
+  angle += angularVelocity; angularVelocity *= FRICTION;
   const numSegments = ITEMS.length;
   const slice = (Math.PI * 2) / numSegments;
-  // Pointer is at 270 deg (1.5 PI)
   const rawIndex = Math.floor(((Math.PI * 1.5 - angle) / slice));
-  
   if (rawIndex !== lastTickIndex) {
     if(angularVelocity > 0.005) playSound("spin");
     lastTickIndex = rawIndex;
   }
-
   drawWheel();
-
-  if (angularVelocity < STOP_THRESHOLD) {
-    finishSpin();
-  } else {
-    requestAnimationFrame(loop);
-  }
+  if (angularVelocity < STOP_THRESHOLD) finishSpin();
+  else requestAnimationFrame(loop);
 }
 
 function finishSpin() {
-  isSpinning = false;
-  panel.classList.remove("flash");
-  
+  isSpinning = false; panel.classList.remove("flash");
   const numSegments = ITEMS.length;
   const slice = (Math.PI * 2) / numSegments;
-  
   const normalizeAngle = (angle % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
   const pointerAngle = (Math.PI * 1.5 - normalizeAngle + (Math.PI * 2)) % (Math.PI * 2);
-  
   const index = Math.floor(pointerAngle / slice);
-  resultText.textContent = ITEMS[index];
-  playSound("win");
+  resultText.textContent = ITEMS[index]; playSound("win");
 }
 
-/* ================= LISTENER ================= */
 window.addEventListener("message", (event) => {
   const data = event.data;
   if (data && data.type === "tip") {
     const amount = parseInt(data.amount);
-    if (amount >= SPIN_COST) {
-      spin(data.user || "Anonymous", amount);
-    }
+    if (amount >= SPIN_COST) spin(data.user || "Anonymous", amount);
   }
 });
-
 try {
   const bc = new BroadcastChannel("cb-overlays");
   bc.onmessage = (e) => {
     const data = e.data;
-    if (data && data.type === "tip" && data.amount >= SPIN_COST) {
-      spin(data.user || "Anonymous", data.amount);
-    }
+    if (data && data.type === "tip" && data.amount >= SPIN_COST) spin(data.user || "Anonymous", data.amount);
   };
 } catch (e) {}
-
 drawWheel();
 </script>
-
 </body>
 </html>
