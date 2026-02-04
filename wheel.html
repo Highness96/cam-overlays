@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Tip Wheel Upgrade</title>
+<title>Smart Tip Wheel</title>
 
 <style>
 :root{
@@ -29,7 +29,7 @@ html, body {
   bottom: 40px;
   width: 900px;
   height: 900px;
-  pointer-events: none; /* Let clicks pass through */
+  pointer-events: none;
 }
 
 #panel {
@@ -114,7 +114,6 @@ html, body {
 #resultTitle { font-size: 18px; opacity: 0.7; }
 #lastResult { font-size: 32px; font-weight: 800; color: var(--accent2); text-shadow: 0 0 15px var(--accent2); }
 
-/* Flash animation when spinning */
 .flash { animation: pulseBorder 0.5s infinite alternate; }
 @keyframes pulseBorder {
   from { border-color: var(--panel-border); box-shadow: 0 0 40px var(--accent1); }
@@ -148,9 +147,9 @@ html, body {
 
 <script>
 /* ================= CONFIG ================= */
-// CHANGE: Cost is now 45
 const SPIN_COST = 45;
 
+// !!! IMPORTANT: EDIT THIS LIST WITH YOUR ITEMS !!!
 const ITEMS = [
   "Pull pants down",
   "Flash anything (5 sec)",
@@ -186,15 +185,14 @@ const panel = document.getElementById("panel");
 const resultText = document.getElementById("lastResult");
 const resultTitle = document.getElementById("resultTitle");
 
-// Physics State
-let angle = 0;             
-let angularVelocity = 0;   
+let angle = 0;
+let angularVelocity = 0;
 let isSpinning = false;
-let lastTickIndex = -1;    
+let lastTickIndex = -1;
 
-// PHYSICS SETTINGS
-const FRICTION = 0.991;    
-const STOP_THRESHOLD = 0.0015; 
+// PHYSICS: 0.992 is smoother and hangs longer at the end
+const FRICTION = 0.992;
+const STOP_THRESHOLD = 0.0010;
 
 function drawWheel() {
   const cx = 360, cy = 360, r = 330;
@@ -203,16 +201,16 @@ function drawWheel() {
 
   ctx.clearRect(0, 0, 720, 720);
 
-  // Draw Segments
   ITEMS.forEach((text, i) => {
-    const start = angle + i * slice;
-    const end = start + slice;
+    const startAngle = angle + i * slice;
+    const endAngle = startAngle + slice;
 
+    // 1. Draw Slice
     ctx.beginPath();
     ctx.moveTo(cx, cy);
-    ctx.arc(cx, cy, r, start, end);
+    ctx.arc(cx, cy, r, startAngle, endAngle);
     
-    // Gradient for each slice
+    // Gradient colors
     const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
     if (i % 2 === 0) {
       grad.addColorStop(0, "rgba(91, 36, 133, 0.8)"); // Dark purple
@@ -224,23 +222,44 @@ function drawWheel() {
     
     ctx.fillStyle = grad;
     ctx.fill();
-    
-    // Stroke/Divider
     ctx.strokeStyle = "rgba(255,255,255,0.2)";
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Text
+    // 2. Draw Text (Smart Flip Logic)
     ctx.save();
     ctx.translate(cx, cy);
-    ctx.rotate(start + slice / 2);
-    ctx.textAlign = "right";
-    ctx.textBaseline = "middle";
-    ctx.font = "bold 20px Arial";
-    ctx.fillStyle = "#fff";
-    ctx.shadowColor = "rgba(0,0,0,0.8)";
-    ctx.shadowBlur = 4;
-    ctx.fillText(text, r - 40, 0);
+    
+    // Calculate the precise angle of this wedge's center
+    const theta = startAngle + slice / 2;
+    ctx.rotate(theta);
+
+    // Normalize angle to 0 - 2PI to check position
+    const normTheta = (theta % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+
+    // If wedge is on the LEFT side (between 90deg and 270deg), flip text
+    // 90deg = PI/2, 270deg = 3PI/2
+    if (normTheta > Math.PI / 2 && normTheta < 3 * Math.PI / 2) {
+      // Flip 180 degrees
+      ctx.rotate(Math.PI);
+      // Align left (draw from rim inwards towards center)
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 20px Arial";
+      ctx.shadowColor = "rgba(0,0,0,0.8)";
+      ctx.shadowBlur = 4;
+      // Negative X because we rotated 180
+      ctx.fillText(text, -(r - 40), 0);
+    } else {
+      // Standard right side (no flip)
+      ctx.textAlign = "right";
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 20px Arial";
+      ctx.shadowColor = "rgba(0,0,0,0.8)";
+      ctx.shadowBlur = 4;
+      ctx.fillText(text, r - 40, 0);
+    }
+
     ctx.restore();
   });
 
@@ -261,39 +280,34 @@ function drawWheel() {
 }
 
 /* ================= LOGIC ================= */
-
 function spin(user, amount) {
-  if (isSpinning) return; 
+  if (isSpinning) return;
   
   isSpinning = true;
   resultTitle.textContent = `${user} tipped ${amount}!`;
   resultText.textContent = "Spinning...";
-  
   playSound("tip");
   panel.classList.add("flash"); 
 
+  // Random speed between 0.35 and 0.55
   angularVelocity = (Math.random() * 0.2 + 0.35); 
-  
   loop();
 }
 
 function loop() {
   if (!isSpinning) return;
 
-  // Update physics
   angle += angularVelocity;
-  angularVelocity *= FRICTION; 
+  angularVelocity *= FRICTION; // Slow down
 
-  // Ticker Logic (Sound when passing lines)
+  // Ticker Sound
   const numSegments = ITEMS.length;
   const slice = (Math.PI * 2) / numSegments;
-  
+  // Pointer is at 270 deg (1.5 PI)
   const rawIndex = Math.floor(((Math.PI * 1.5 - angle) / slice));
   
   if (rawIndex !== lastTickIndex) {
-    if(angularVelocity > 0.005) {
-       playSound("spin");
-    }
+    if(angularVelocity > 0.005) playSound("spin");
     lastTickIndex = rawIndex;
   }
 
@@ -317,13 +331,11 @@ function finishSpin() {
   const pointerAngle = (Math.PI * 1.5 - normalizeAngle + (Math.PI * 2)) % (Math.PI * 2);
   
   const index = Math.floor(pointerAngle / slice);
-  
-  const winner = ITEMS[index];
-  resultText.textContent = winner;
+  resultText.textContent = ITEMS[index];
   playSound("win");
 }
 
-/* ================= MESSAGE LISTENER ================= */
+/* ================= LISTENER ================= */
 window.addEventListener("message", (event) => {
   const data = event.data;
   if (data && data.type === "tip") {
