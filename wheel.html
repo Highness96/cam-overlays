@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Tip Wheel Overlay</title>
+<title>Tip Wheel Upgrade</title>
 
 <style>
 :root{
-  --panel-bg: rgba(20, 0, 35, 0.65);
+  --panel-bg: rgba(20, 0, 35, 0.85);
   --panel-border: rgba(180, 120, 255, 0.8);
   --glow: rgba(200, 140, 255, 1);
   --text: #ffffff;
@@ -19,7 +19,7 @@ html, body {
   padding: 0;
   background: transparent;
   overflow: hidden;
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: var(--text);
 }
 
@@ -29,53 +29,61 @@ html, body {
   bottom: 40px;
   width: 900px;
   height: 900px;
-  pointer-events: none;
+  pointer-events: none; /* Let clicks pass through */
 }
 
 #panel {
   position: absolute;
   inset: 0;
   background: var(--panel-bg);
-  border-radius: 28px;
-  border: 3px solid var(--panel-border);
+  border-radius: 40px;
+  border: 4px solid var(--panel-border);
   box-shadow:
     0 0 40px rgba(180,120,255,0.35),
-    0 0 80px rgba(180,120,255,0.25);
+    inset 0 0 60px rgba(0,0,0,0.8);
+  transition: box-shadow 0.2s;
 }
 
 #header {
   position: absolute;
-  top: 18px;
-  left: 24px;
-  right: 24px;
+  top: 25px;
+  left: 30px;
+  right: 30px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  z-index: 10;
 }
 
 #title {
-  font-size: 28px;
+  font-size: 36px;
   font-weight: 900;
+  text-shadow: 0 0 10px rgba(184,108,255,0.8);
+  letter-spacing: 1px;
 }
 
 #cost {
-  font-size: 20px;
-  padding: 8px 14px;
+  font-size: 24px;
+  font-weight: 700;
+  padding: 10px 20px;
   border-radius: 999px;
-  background: rgba(0,0,0,0.4);
+  background: linear-gradient(90deg, #5b2485, #b86cff);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
 
+/* The Needle */
 #pointer {
   position: absolute;
-  top: 115px;
+  top: 110px;
   left: 50%;
   transform: translateX(-50%);
   width: 0;
   height: 0;
-  border-left: 28px solid transparent;
-  border-right: 28px solid transparent;
-  border-bottom: 44px solid var(--accent2);
-  filter: drop-shadow(0 0 15px rgba(110,231,255,0.9));
+  border-left: 30px solid transparent;
+  border-right: 30px solid transparent;
+  border-bottom: 50px solid #fff;
+  filter: drop-shadow(0 0 10px var(--accent2));
+  z-index: 20;
 }
 
 #canvas {
@@ -85,29 +93,32 @@ html, body {
   transform: translate(-50%, -50%);
   width: 720px;
   height: 720px;
+  filter: drop-shadow(0 0 20px rgba(0,0,0,0.5));
 }
 
 #result {
   position: absolute;
-  left: 24px;
-  right: 24px;
-  bottom: 24px;
-  padding: 18px 20px;
-  font-size: 22px;
-  border-radius: 18px;
-  background: rgba(0,0,0,0.45);
+  left: 40px;
+  right: 40px;
+  bottom: 40px;
+  padding: 20px;
+  text-align: center;
+  background: rgba(0,0,0,0.6);
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.1);
   display: flex;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 5px;
 }
 
-.flash {
-  animation: flash 0.9s ease-out;
-}
+#resultTitle { font-size: 18px; opacity: 0.7; }
+#lastResult { font-size: 32px; font-weight: 800; color: var(--accent2); text-shadow: 0 0 15px var(--accent2); }
 
-@keyframes flash {
-  0%   { box-shadow: 0 0 0 rgba(0,0,0,0); }
-  30%  { box-shadow: 0 0 120px var(--glow); }
-  100% { box-shadow: 0 0 40px rgba(180,120,255,0.4); }
+/* Flash animation when spinning */
+.flash { animation: pulseBorder 0.5s infinite alternate; }
+@keyframes pulseBorder {
+  from { border-color: var(--panel-border); box-shadow: 0 0 40px var(--accent1); }
+  to { border-color: #fff; box-shadow: 0 0 70px var(--accent2); }
 }
 </style>
 </head>
@@ -126,12 +137,11 @@ html, body {
   <canvas id="canvas" width="720" height="720"></canvas>
 
   <div id="result">
-    <div>Result: <b id="lastResult">—</b></div>
-    <div id="lastTip" style="opacity:.75;">waiting for tip…</div>
+    <div id="resultTitle">Waiting for spin...</div>
+    <div id="lastResult">—</div>
   </div>
 </div>
 
-<!-- AUDIO -->
 <audio id="soundTip"  src="audio/tip.wav" preload="auto"></audio>
 <audio id="soundSpin" src="audio/spin.wav" preload="auto"></audio>
 <audio id="soundWin"  src="audio/win.wav" preload="auto"></audio>
@@ -139,159 +149,216 @@ html, body {
 <script>
 /* ================= CONFIG ================= */
 const SPIN_COST = 100;
+
+// PASTE YOUR ORIGINAL LIST HERE
 const ITEMS = [
-  "Pull pants down",
-  "Flash anything (5 sec)",
-  "Show feet",
-  "I choose",
-  "Grab my package",
-  "Chat chooses",
-  "Spin again",
-  "VIP attention"
+  "Prize 1",
+  "Prize 2",
+  "Prize 3",
+  "Prize 4",
+  "Prize 5",
+  "Prize 6",
+  "Prize 7",
+  "Prize 8"
 ];
 
 document.getElementById("spinCost").textContent = SPIN_COST;
 
 /* ================= AUDIO ================= */
-const soundTip  = document.getElementById("soundTip");
-const soundSpin = document.getElementById("soundSpin");
-const soundWin  = document.getElementById("soundWin");
+const audioCtx = {
+  tip: document.getElementById("soundTip"),
+  spin: document.getElementById("soundSpin"),
+  win: document.getElementById("soundWin")
+};
 
-function playSound(a){
-  try{
-    a.pause();
-    a.currentTime = 0;
-    a.play().catch(()=>{});
-  }catch(e){}
+function playSound(key) {
+  const s = audioCtx[key];
+  if(s){
+    s.currentTime = 0;
+    s.play().catch(()=>{});
+  }
 }
 
-/* ================= WHEEL ================= */
+/* ================= DRAWING ================= */
 const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const panel = document.getElementById("panel");
-const lastResult = document.getElementById("lastResult");
-const lastTip = document.getElementById("lastTip");
+const resultText = document.getElementById("lastResult");
+const resultTitle = document.getElementById("resultTitle");
 
-let angle = 0;
-let spinning = false;
-let angularVelocity = 0;
+// Physics State
+let angle = 0;             // Current rotation angle
+let angularVelocity = 0;   // Speed of rotation
+let isSpinning = false;
+let lastTickIndex = -1;    // Used to track "ticks" for sound
 
-const FRICTION = 0.988;      // slower = longer spin
-const MIN_VELOCITY = 0.002; // stop threshold
+// PHYSICS SETTINGS
+const FRICTION = 0.991;    // Closer to 1 = slippery/long spin. 0.991 is heavy.
+const STOP_THRESHOLD = 0.0015; 
 
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-  const words = text.split(" ");
-  let line = "";
-  let offsetY = y;
-
-  for (let w of words) {
-    const test = line + w + " ";
-    if (ctx.measureText(test).width > maxWidth) {
-      ctx.fillText(line, x, offsetY);
-      line = w + " ";
-      offsetY += lineHeight;
-    } else line = test;
-  }
-  ctx.fillText(line, x, offsetY);
-}
-
-function drawWheel(){
+function drawWheel() {
   const cx = 360, cy = 360, r = 330;
-  const slice = Math.PI * 2 / ITEMS.length;
+  const numSegments = ITEMS.length;
+  const slice = (Math.PI * 2) / numSegments;
 
-  ctx.clearRect(0,0,720,720);
+  ctx.clearRect(0, 0, 720, 720);
 
-  ITEMS.forEach((text,i)=>{
+  // Draw Segments
+  ITEMS.forEach((text, i) => {
     const start = angle + i * slice;
     const end = start + slice;
 
     ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,r,start,end);
-    ctx.fillStyle = i%2 ? "rgba(110,231,255,.35)" : "rgba(184,108,255,.45)";
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, r, start, end);
+    
+    // Gradient for each slice
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    if (i % 2 === 0) {
+      grad.addColorStop(0, "rgba(91, 36, 133, 0.8)"); // Dark purple
+      grad.addColorStop(1, "rgba(184, 108, 255, 0.6)"); // Light purple
+    } else {
+      grad.addColorStop(0, "rgba(40, 40, 60, 0.8)");   // Dark
+      grad.addColorStop(1, "rgba(110, 231, 255, 0.5)"); // Cyan
+    }
+    
+    ctx.fillStyle = grad;
     ctx.fill();
-    ctx.strokeStyle="rgba(255,255,255,.35)";
+    
+    // Stroke/Divider
+    ctx.strokeStyle = "rgba(255,255,255,0.2)";
+    ctx.lineWidth = 2;
     ctx.stroke();
 
+    // Text
     ctx.save();
-    ctx.translate(cx,cy);
-    ctx.rotate(start + slice/2);
-    ctx.textAlign="right";
-    ctx.textBaseline="middle";
-    ctx.font="700 16px Arial";
-    ctx.fillStyle="#fff";
-    ctx.shadowBlur=8;
-    wrapText(ctx,text,r-36,0,150,18);
+    ctx.translate(cx, cy);
+    ctx.rotate(start + slice / 2);
+    ctx.textAlign = "right";
+    ctx.textBaseline = "middle";
+    ctx.font = "bold 20px Arial";
+    ctx.fillStyle = "#fff";
+    ctx.shadowColor = "rgba(0,0,0,0.8)";
+    ctx.shadowBlur = 4;
+    ctx.fillText(text, r - 40, 0);
     ctx.restore();
   });
 
+  // Center Cap
   ctx.beginPath();
-  ctx.arc(cx,cy,70,0,Math.PI*2);
-  ctx.fillStyle="rgba(0,0,0,.6)";
+  ctx.arc(cx, cy, 50, 0, Math.PI * 2);
+  ctx.fillStyle = "#1a0b2e";
   ctx.fill();
-  ctx.strokeStyle="#fff";
+  ctx.strokeStyle = "#b86cff";
+  ctx.lineWidth = 4;
   ctx.stroke();
 
-  ctx.fillStyle="#fff";
-  ctx.font="900 22px Arial";
-  ctx.textAlign="center";
-  ctx.textBaseline="middle";
-  ctx.fillText("SPIN",cx,cy);
+  ctx.fillStyle = "#fff";
+  ctx.font = "bold 18px Arial";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText("VIP", cx, cy);
 }
 
-drawWheel();
+/* ================= LOGIC ================= */
 
-/* ================= SPIN LOGIC ================= */
-function spin(user, amount){
-  if(spinning) return;
-  spinning = true;
+function spin(user, amount) {
+  if (isSpinning) return; // Ignore spins if already moving
+  
+  isSpinning = true;
+  resultTitle.textContent = `${user} tipped ${amount}!`;
+  resultText.textContent = "Spinning...";
+  
+  playSound("tip");
+  panel.classList.add("flash"); // glowing border effect
 
-  playSound(soundSpin);
+  // Randomize initial velocity (speed)
+  // 0.3 to 0.5 is a good range for this friction
+  angularVelocity = (Math.random() * 0.2 + 0.35); 
+  
+  loop();
+}
+
+function loop() {
+  if (!isSpinning) return;
+
+  // Update physics
+  angle += angularVelocity;
+  angularVelocity *= FRICTION; // Decay speed
+
+  // Ticker Logic (Sound when passing lines)
+  // The pointer is at 270 degrees (3PI/2) or top.
+  // We calculate which index is currently at the top.
+  const numSegments = ITEMS.length;
+  const slice = (Math.PI * 2) / numSegments;
+  
+  // Calculate raw index
+  const rawIndex = Math.floor(((Math.PI * 1.5 - angle) / slice));
+  
+  if (rawIndex !== lastTickIndex) {
+    // Only play sound if moving fast enough, otherwise it sounds weird at the very end
+    if(angularVelocity > 0.005) {
+       playSound("spin");
+    }
+    lastTickIndex = rawIndex;
+  }
+
+  // Draw
+  drawWheel();
+
+  // Check Stop Condition
+  if (angularVelocity < STOP_THRESHOLD) {
+    finishSpin();
+  } else {
+    requestAnimationFrame(loop);
+  }
+}
+
+function finishSpin() {
+  isSpinning = false;
   panel.classList.remove("flash");
-  void panel.offsetWidth;
-  panel.classList.add("flash");
+  
+  const numSegments = ITEMS.length;
+  const slice = (Math.PI * 2) / numSegments;
+  
+  // Math to find the slice at the top (Pointer position)
+  // Add 2PI to handle negative angles, perform modulo
+  const normalizeAngle = (angle % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+  // Pointer is at 270 deg (1.5 PI). We subtract the current angle from that to find the offset.
+  const pointerAngle = (Math.PI * 1.5 - normalizeAngle + (Math.PI * 2)) % (Math.PI * 2);
+  
+  const index = Math.floor(pointerAngle / slice);
+  
+  const winner = ITEMS[index];
+  resultText.textContent = winner;
+  playSound("win");
+}
 
-  lastTip.textContent = `Tip ${amount} by ${user}`;
-
-  angularVelocity =
-    (Math.random()*0.35 + 0.45) *
-    (Math.random()<0.5 ? -1 : 1);
-
-  function frame(){
-    angle += angularVelocity;
-    angularVelocity *= FRICTION;
-    drawWheel();
-
-    if(Math.abs(angularVelocity) > MIN_VELOCITY){
-      requestAnimationFrame(frame);
-    } else {
-      const slice = Math.PI*2 / ITEMS.length;
-      const index = Math.floor(
-        ((Math.PI*1.5 - angle + Math.PI*2)%(Math.PI*2)) / slice
-      );
-      lastResult.textContent = ITEMS[index];
-      playSound(soundWin);
-      spinning = false;
+/* ================= MESSAGE LISTENER ================= */
+// This waits for the "tip" signal from your browser source or bot
+window.addEventListener("message", (event) => {
+  const data = event.data;
+  if (data && data.type === "tip") {
+    const amount = parseInt(data.amount);
+    if (amount >= SPIN_COST) {
+      spin(data.user || "Anonymous", amount);
     }
   }
-  requestAnimationFrame(frame);
-}
+});
 
-/* ================= TIP HANDLING ================= */
-function handleTip(data){
-  if(!data || data.type!=="tip") return;
-  playSound(soundTip);
-  if(data.amount >= SPIN_COST){
-    spin(data.user||"anon", data.amount);
-  }
-}
-
-window.addEventListener("message", e => handleTip(e.data));
-
-try{
+// Broadcast Channel support (alternative method)
+try {
   const bc = new BroadcastChannel("cb-overlays");
-  bc.onmessage = e => handleTip(e.data);
-}catch(e){}
+  bc.onmessage = (e) => {
+    const data = e.data;
+    if (data && data.type === "tip" && data.amount >= SPIN_COST) {
+      spin(data.user || "Anonymous", data.amount);
+    }
+  };
+} catch (e) {}
+
+// Initial Draw
+drawWheel();
 </script>
 
 </body>
